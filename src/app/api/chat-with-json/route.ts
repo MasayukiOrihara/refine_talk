@@ -2,10 +2,20 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { ChatOpenAI } from '@langchain/openai';
 import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
-import { CharacterTextSplitter } from 'langchain/text_splitter';
+import { JSONLoader } from 'langchain/document_loaders/fs/json';
 import { formatDocumentsAsString } from 'langchain/util/document';
- 
-export const runtime = 'edge';
+
+const loader = new JSONLoader('src/data/city.json', [
+    '/city',
+    '/slug',
+    '/han',
+    '/mayor',
+    '/area_code',
+    '/population',
+    '/city_emblem_image',
+]);
+
+export const runtime = 'node';
  
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
@@ -31,17 +41,19 @@ export async function POST(req: Request) {
  
     const currentMessageContent = messages[messages.length - 1].content;
  
-    const textSplitter = new CharacterTextSplitter();
-    const docs = await textSplitter.createDocuments([
-      JSON.stringify({
-        city: '名古屋',
-        slug: 'nagoya',
-        han: '尾張',
-        mayor: '広沢一郎',
-        area_code: '052',
-        population: 100,
-      }),
-    ]);
+    let docs = [];
+    try {
+      docs = await loader.load();
+    } catch (error) {
+      console.error('Error loading JSON data:', error);
+      return new Response(
+        JSON.stringify({ error: 'Error loading data from JSON file.' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    }
  
     const prompt = PromptTemplate.fromTemplate(TEMPLATE);
  
