@@ -4,6 +4,11 @@ import { LangChainAdapter } from 'ai';
  
 export const runtime = 'edge';
  
+/**
+ * 橋本さん制作AIチャットハンズオンカリキュラム
+ * @param req 
+ * @returns 
+ */
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
@@ -18,6 +23,7 @@ export async function POST(req: Request) {
  
     const prompt = PromptTemplate.fromTemplate('{message}');
  
+    // モデルの指定
     const model = new ChatOpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
       model: 'gpt-4o',

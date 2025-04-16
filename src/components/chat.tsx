@@ -13,18 +13,20 @@ import { Input } from './ui/input';
  
 export const Chat = () => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
-        api: 'api/chat-with-json',
-        onError: (e) => {
-          toast.error('エラーが発生しました');
-          console.log(e);
-        },
-      });
+    // APIの読み込み
+    api: 'api/chat-with-json',
+    onError: (e) => {
+      toast.error('エラーが発生しました');
+      console.log(e);
+    },
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // 回答が画像だった場合の処理を含む
   const getAnswer = (messageId: string, value: string, index: number) => {
     const imageMarkdownLinkRegex = /!\[([^\]]*)\]\((https?:\/\/[^\)]+)\)/g;
     const matches = [];
@@ -60,15 +62,15 @@ export const Chat = () => {
       );
     }
 
-        return (
-          <div
-            key={`${messageId}-${index}`}
-            className="break-words overflow-hidden"
-          >
-            <p style={{ overflowWrap: 'anywhere' }}>{value}</p>
-          </div>
-        );
-      };
+    return (
+      <div
+        key={`${messageId}-${index}`}
+        className="break-words overflow-hidden"
+      >
+        <p style={{ overflowWrap: 'anywhere' }}>{value}</p>
+      </div>
+    );
+  };
 
   return (
     <div className="mt-2 flex flex-col w-full max-w-2xl h-full mx-auto gap-2 bg-zinc-900 overflow-hidden">

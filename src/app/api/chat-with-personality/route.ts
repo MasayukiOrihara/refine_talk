@@ -16,6 +16,11 @@ Current conversation:
 user: {input}
 assistant:`;
  
+/**
+ * 
+ * @param req 橋本さん制作AIチャットハンズオンカリキュラム
+ * @returns 
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
