@@ -2,6 +2,7 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 import { LangChainAdapter } from 'ai';
  
+// 軽量・高速なEdge Function
 export const runtime = 'edge';
  
 /**
@@ -11,7 +12,9 @@ export const runtime = 'edge';
  */
 export async function POST(req: Request) {
   try {
+    // チャット履歴
     const { messages } = await req.json();
+    // 直近のメッセージを取得
     const userMessage = messages.at(-1).content;
  
     if (!userMessage) {
@@ -21,19 +24,23 @@ export async function POST(req: Request) {
       });
     }
  
+    // プロンプトテンプレートの作成（そのままuserMessageをLLMに渡す）
     const prompt = PromptTemplate.fromTemplate('{message}');
  
     // モデルの指定
     const model = new ChatOpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
       model: 'gpt-4o',
-      temperature: 0.8,
+      temperature: 0.8, // ランダム度（高いほど創造的）
     });
  
+    // パイプ処理
     const chain = prompt.pipe(model);
  
+    // ストリーミング応答を取得
     const stream = await chain.stream({ message: userMessage });
  
+    // LangChainのストリーム出力を Webレスポンス用のストリーム形式に変換する
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
     if (error instanceof Error) {
