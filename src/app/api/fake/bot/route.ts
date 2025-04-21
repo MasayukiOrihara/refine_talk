@@ -4,18 +4,26 @@ import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
  
 export const runtime = 'edge';
  
-// チャット履歴の整形、この形式がTEMPLATEに渡されることで過去の会話の流れを保持
+// チャットの整形、この形式でチャットを行う
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
  
-// キャラクター設定：会話履歴を渡すことで一貫性のあるキャラを保つ
-const TEMPLATE = `お前はパッチーという名前のノーベル経済学賞を取った経済学者だ。すべての返答は非常に冗長で理屈っぽいがすべてに根拠があり論文を引用している。話の頭から結論が単純明快で、話はすべて大阪弁である。
+// プロンプト1: 指摘ポイント抽出
+  const TEMPLATE1 = `以下の部下からの口頭報告で特に気になるポイントを1行で指摘してください。 
+  
+  user: {input}
+  assistant:`;
+
+// プロンプト2: キャラクター設定 + 指示 + 今までのチャット履歴 + 送るメッセージと形式
+const TEMPLATE2 = `あなたは折原という名前の男性でアラサー社会人です。意欲の特徴として、モチベーションが他者評価や自分の価値観に極端に影響される事は少ないです。また、変化の多い少ないに関わらず、どんな環境においても、安定的に力を発揮できます。ストレスに対する感情面の傾向として、自分が精神的に辛い状況でも、周りへの影響を考えた感情表現ができますが、ストレスを溜めてしまうことがあります。リーダーシップの特徴としては、合理的に問題解決を目指すよりも、まずはメンバーの気持ちに配慮することを優先するタイプです。問題発生時の傾向として、自責の感情とは切り離して客観的に問題の原因の所在を把握しようとします。そして、問題解決にあたっては、独力で解決しようとする傾向があります。
+あなたは会社で後輩から報告を受ける立場です。今日の予定の報告を聞いて指摘ポイントに沿って3行ぐらいで指摘してください。 
  
 Current conversation:
 {chat_history}
  
 user: {input}
+指摘ポイント：{prompt1_output}
 assistant:`;
  
 /**
@@ -36,21 +44,42 @@ export async function POST(req: Request) {
     //現在の履歴 {input}用 
     const currentMessageContent = messages[messages.length - 1].content;
  
-    const prompt = PromptTemplate.fromTemplate(TEMPLATE);
+    // プロンプトの準備
+    const prompt1 = PromptTemplate.fromTemplate(TEMPLATE1);
+    const prompt2 = PromptTemplate.fromTemplate(TEMPLATE2);
  
+    // モデルの準備（今回はfakeモデルなので一定の答えしか返しません）
     const model = new FakeListChatModel({
       responses: [
-          "せやけどな、ほんまに重要なんはインセンティブ構造やで？論文『Principal-Agent Problem』でも述べられとる通りや。",
+          "（応答結果）",
       ],
     });
  
-    const chain = prompt.pipe(model);
- 
-    // 過去の文脈＋今のメッセージをAIに送ることでキャラクターとして返答させる
-    const stream = await chain.stream({
-      chat_history: formattedPreviousMessages.join('\n'),
+    // プロンプトとモデルをつなぐ
+    const chain1 = prompt1.pipe(model);
+    const chain2 = prompt2.pipe(model);
+
+    // １回目の質問
+    const output = await chain1.invoke({
       input: currentMessageContent,
     });
+ 
+    // ２回目の質問
+    const stream = await chain2.stream({
+      chat_history: formattedPreviousMessages.join('\n'),
+      input: currentMessageContent,
+      prompt1_output: output.content,
+    });
+
+    // プロンプト2の確認
+    const finalPrompt2 = await prompt2.format({
+      chat_history: formattedPreviousMessages.join("\n"),
+      input: currentMessageContent,
+      prompt1_output: output.content,
+    });
+    
+
+    console.log(finalPrompt2);
  
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
