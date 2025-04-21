@@ -5,6 +5,7 @@ import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
 import { JSONLoader } from 'langchain/document_loaders/fs/json';
 import { formatDocumentsAsString } from 'langchain/util/document';
 
+// JSONを読み込む形式を作成
 const loader = new JSONLoader('src/data/city.json', [
     '/city',
     '/slug',
@@ -17,10 +18,12 @@ const loader = new JSONLoader('src/data/city.json', [
 
 export const runtime = 'node';
  
+// メッセージの整形
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
  
+// プロンプトテンプレート
 const TEMPLATE = `次のデータベースに基づいてユーザの質問に答えてください。もしその答えがデータベースに含まれていない場合は、情報がないことを正直に返答してください。
 ==============================
 Context: {context}
@@ -33,14 +36,18 @@ assistant:`;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    // nullの場合は空の配列を、通常は受け取ったリクエスト
     const messages = body.messages ?? [];
  
+    // ひとつ前ののメッセージ
     const formattedPreviousMessages = messages
       .slice(0, -1)
       .map(formatMessage);
  
+    // 直近の要素を取得
     const currentMessageContent = messages[messages.length - 1].content;
  
+    // JSONをここでロード
     let docs = [];
     try {
       docs = await loader.load();
@@ -63,6 +70,7 @@ export async function POST(req: Request) {
       temperature: 0.8,
     });
  
+    // チェインを作成
     const chain = RunnableSequence.from([
       {
         question: (input) => input.question,
@@ -73,6 +81,7 @@ export async function POST(req: Request) {
       model,
     ]);
  
+    // ストリームを作成（最終出力）
     const stream = await chain.stream({
       chat_history: formattedPreviousMessages.join('\n'),
       question: currentMessageContent,
