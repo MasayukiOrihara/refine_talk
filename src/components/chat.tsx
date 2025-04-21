@@ -14,7 +14,7 @@ import { Input } from './ui/input';
 export const Chat = () => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
-    api: 'api/prot1',
+    api: 'api/fake/bot',
     onError: (e) => {
       toast.error('エラーが発生しました');
       console.log(e);
