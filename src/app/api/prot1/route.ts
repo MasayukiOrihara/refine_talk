@@ -29,7 +29,9 @@ user: {input}
 assistant:`;
  
 /**
- * チャットボット
+ * チャットボット(折原AI)
+ * 報告に対するビジネスマナーの指摘
+ * 
  * @param req 
  * @returns 
  */
