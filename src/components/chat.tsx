@@ -10,11 +10,21 @@ import { cn } from '@/lib/utils';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+
+type Model = 'gpt-4o' | 'claude-haiku' | 'fake-llm';
+
+interface ChatProps {
+  model: Model;
+}
  
-export const Chat = () => {
+export const Chat: React.FC<ChatProps> = ({ model }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
-    api: 'api/fake/bot',
+    // api: 'api/prot1',
+    api: 'api/chat',
+    body: {
+      model,
+    },
     onError: (e) => {
       toast.error('エラーが発生しました');
       console.log(e);
