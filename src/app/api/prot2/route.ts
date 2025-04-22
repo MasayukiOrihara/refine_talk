@@ -11,7 +11,8 @@ const formatMessage = (message: VercelChatMessage) => {
 };
 
 // テンプレート
-const TEMPLATE = `Current conversation:
+const TEMPLATE = `
+Current conversation:
 {chat_history}
  
 user: {input}
@@ -19,6 +20,8 @@ assistant:`;
 
 /**
  * チャット応答AI（記憶・モデル変更対応済み）
+ * 報連相ワークAI
+ * 
  * @param req 
  * @returns 
  */

@@ -11,7 +11,8 @@ const formatMessage = (message: VercelChatMessage) => {
 };
 
 // テンプレート
-const TEMPLATE = `Current conversation:
+const TEMPLATE = `3行にまとめて回答してください。
+Current conversation:
 {chat_history}
  
 user: {input}
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
       case 'gpt-4o':
         model = new ChatOpenAI({
         apiKey: process.env.OPENAI_API_KEY!,
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         temperature: 0.9, // ランダム度（高いほど創造的）
         });
       break;
