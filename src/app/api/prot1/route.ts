@@ -3,6 +3,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ChatAnthropic } from "@langchain/anthropic";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
+import { StringOutputParser } from '@langchain/core/output_parsers';
  
 export const runtime = 'edge';
  
@@ -50,8 +51,11 @@ export async function POST(req: Request) {
     const currentMessageContent = messages[messages.length - 1].content;
  
     // プロンプトの準備
-    const prompt1 = PromptTemplate.fromTemplate(TEMPLATE1);
-    const prompt2 = PromptTemplate.fromTemplate(TEMPLATE2);
+    const pointingOutPrompt = PromptTemplate.fromTemplate(TEMPLATE1);
+    const characterPrompt = PromptTemplate.fromTemplate(TEMPLATE2);
+
+    // 出力形式の指定
+    const outputParser = new StringOutputParser();
  
     // モデルの指定
     let model;
@@ -77,8 +81,8 @@ export async function POST(req: Request) {
     }
 
     // プロンプトとモデルをつなぐ
-    const chain1 = prompt1.pipe(model);
-    const chain2 = prompt2.pipe(model);
+    const chain1 = pointingOutPrompt.pipe(model).pipe(outputParser);
+    const chain2 = characterPrompt.pipe(model).pipe(outputParser);
 
     // １回目の質問
     const output = await chain1.invoke({
@@ -89,18 +93,18 @@ export async function POST(req: Request) {
     const stream = await chain2.stream({
       chat_history: formattedPreviousMessages.join('\n'),
       input: currentMessageContent,
-      prompt1_output: output.content,
+      prompt1_output: output,
     });
 
     // プロンプト2の確認
-    const finalPrompt2 = await prompt2.format({
+    const finalCharacterPrompt = await characterPrompt.format({
       chat_history: formattedPreviousMessages.join("\n"),
       input: currentMessageContent,
-      prompt1_output: output.content,
+      prompt1_output: output,
     });
     
-    console.log(output.content);
-    console.log(finalPrompt2);
+    console.log(output);
+    console.log(finalCharacterPrompt);
  
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
