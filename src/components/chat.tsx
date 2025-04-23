@@ -21,8 +21,8 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
     // api: 'api/prot1',
-     api: 'api/chat',
-    //api: 'api/langchain/rag/aws',
+     //api: 'api/chat',
+    api: 'api/langchain/rag/web',
     body: {
       model,
     },
