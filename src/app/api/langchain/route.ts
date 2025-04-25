@@ -3,10 +3,8 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 import { ChatOpenAI } from '@langchain/openai';
 import { LangChainAdapter } from 'ai';
-import { readFile } from 'fs/promises';
 import path from 'path';
- 
-export const runtime = 'node';
+import { readFile } from 'fs/promises';
 
 /**
  * シンプル

@@ -4,30 +4,13 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
 import { StringOutputParser } from '@langchain/core/output_parsers';
- 
-export const runtime = 'edge';
+import { readFile } from 'fs/promises';
+import path from 'path';
  
 // チャットの整形、この形式でチャットを行う
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
- 
-// プロンプト1: 指摘ポイント抽出
-  const TEMPLATE1 = `以下の部下からの口頭報告で、ビジネスマナーに引っかかる点を1行で指摘してください。 
-  
-  user: {input}
-  assistant:`;
-
-// プロンプト2: キャラクター設定 + 指示 + 今までのチャット履歴 + 送るメッセージと形式
-const TEMPLATE2 = `あなたは折原という名前の男性でアラサー社会人です。意欲の特徴として、モチベーションが他者評価や自分の価値観に極端に影響される事は少ないです。また、変化の多い少ないに関わらず、どんな環境においても、安定的に力を発揮できます。ストレスに対する感情面の傾向として、自分が精神的に辛い状況でも、周りへの影響を考えた感情表現ができますが、ストレスを溜めてしまうことがあります。リーダーシップの特徴としては、合理的に問題解決を目指すよりも、まずはメンバーの気持ちに配慮することを優先するタイプです。問題発生時の傾向として、自責の感情とは切り離して客観的に問題の原因の所在を把握しようとします。そして、問題解決にあたっては、独力で解決しようとする傾向があります。
-あなたは会社で後輩から報告を受ける立場です。今日の予定の報告を聞いて指摘ポイントに沿って3行で指摘してください。 
- 
-Current conversation:
-{chat_history}
- 
-user: {input}
-指摘ポイント：{prompt1_output}
-assistant:`;
  
 /**
  * チャットボット(折原AI)
@@ -50,9 +33,20 @@ export async function POST(req: Request) {
     //現在の履歴 {input}用 
     const currentMessageContent = messages[messages.length - 1].content;
  
+    //プロンプトテンプレートの作成
+    let json = null;
+    try {
+      const filePath = path.join(process.cwd(), 'src/data/prompt-template.json');
+      const data = await readFile(filePath, 'utf-8');
+      
+      json = JSON.parse(data);
+    } catch(e){
+      console.log(e);
+    }
+
     // プロンプトの準備
-    const pointingOutPrompt = PromptTemplate.fromTemplate(TEMPLATE1);
-    const characterPrompt = PromptTemplate.fromTemplate(TEMPLATE2);
+    const pointingOutPrompt = PromptTemplate.fromTemplate(json[1].template);
+    const characterPrompt = PromptTemplate.fromTemplate(json[2].template);
 
     // 出力形式の指定
     const outputParser = new StringOutputParser();
