@@ -3,9 +3,11 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 import { ChatOpenAI } from '@langchain/openai';
 import { LangChainAdapter } from 'ai';
-
-import * as data from '../../../../src/data/prompt-template.json';
+import { readFile } from 'fs/promises';
+import path from 'path';
  
+export const runtime = 'node';
+
 /**
  * シンプル
  * @param req 
@@ -30,7 +32,18 @@ export async function POST(req: Request) {
     }
  
     //プロンプトテンプレートの作成
-    const prompt = PromptTemplate.fromTemplate(data[0].template);
+    let json = null;
+    try {
+      const filePath = path.join(process.cwd(), 'src/data/prompt-template.json');
+      const data = await readFile(filePath, 'utf-8');
+      
+      json = JSON.parse(data);
+    } catch(e){
+      console.log(e);
+    }
+    
+
+    const prompt = PromptTemplate.fromTemplate(json[0].template);
  
     // モデルの指定
         let model;

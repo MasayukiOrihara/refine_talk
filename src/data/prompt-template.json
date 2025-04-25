@@ -4,18 +4,36 @@
     "template": "user: {message} assistant:",
     "variables": [
       {
-        "name": "message",
-        "type": "string"
+        "id": 1,
+        "name": "message"
       }
     ]
   },
   {
-    "name": "api-langchain",
-    "template": "大阪弁で話してください。 user: {message} assistant:",
+    "name": "api-prot1-point",
+    "template": "以下の部下からの口頭報告で、ビジネスマナーに引っかかる点を1行で指摘してください。\n\nuser: {input}\nassistant:",
     "variables": [
       {
-        "name": "message",
-        "type": "string"
+        "id": 1,
+        "name": "input"
+      }
+    ]
+  },
+  {
+    "name": "api-prot1-character",
+    "template": "あなたは折原という名前の男性でアラサー社会人です。意欲の特徴として、モチベーションが他者評価や自分の価値観に極端に影響される事は少ないです。また、変化の多い少ないに関わらず、どんな環境においても、安定的に力を発揮できます。ストレスに対する感情面の傾向として、自分が精神的に辛い状況でも、周りへの影響を考えた感情表現ができますが、ストレスを溜めてしまうことがあります。リーダーシップの特徴としては、合理的に問題解決を目指すよりも、まずはメンバーの気持ちに配慮することを優先するタイプです。問題発生時の傾向として、自責の感情とは切り離して客観的に問題の原因の所在を把握しようとします。そして、問題解決にあたっては、独力で解決しようとする傾向があります。\nあなたは会社で後輩から報告を受ける立場です。今日の予定の報告を聞いて指摘ポイントに沿って3行で指摘してください。\n\nCurrent conversation:\n\n{chat_history}\n\nuser: {input}\n指摘ポイント：{prompt1_output}\n\nassistant:",
+    "variables": [
+      {
+        "id": 1,
+        "name": "chat_history"
+      },
+      {
+        "id": 2,
+        "name": "input"
+      },
+      {
+        "id": 1,
+        "name": "prompt1_output"
       }
     ]
   }
