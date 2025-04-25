@@ -9,11 +9,6 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { PineconeStore } from "@langchain/pinecone";
 
 
-// チャット形式
-const formatMessage = (message: VercelChatMessage) => {
-  return `${message.role}: ${message.content}`;
-};
-
 /**
  * チャット応答AI（記憶なし・モデル変更対応済み）
  * 質問に対してweb検索を行い、結果をvectolにして保存

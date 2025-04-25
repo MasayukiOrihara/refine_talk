@@ -1,0 +1,22 @@
+[
+  {
+    "name": "api-langchain",
+    "template": "user: {message} assistant:",
+    "variables": [
+      {
+        "name": "message",
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "api-langchain",
+    "template": "大阪弁で話してください。 user: {message} assistant:",
+    "variables": [
+      {
+        "name": "message",
+        "type": "string"
+      }
+    ]
+  }
+]
