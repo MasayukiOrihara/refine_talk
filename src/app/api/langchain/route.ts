@@ -1,27 +1,24 @@
-import { ChatAnthropic } from '@langchain/anthropic';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { FakeListChatModel } from '@langchain/core/utils/testing';
-import { ChatOpenAI } from '@langchain/openai';
 import { LangChainAdapter } from 'ai';
-import path from 'path';
-import { readFile } from 'fs/promises';
+
+import { getModel, isObject, loadJsonFile } from '@contents/utils';
+import type { PromptTemplateJson } from '@contents/type'
 
 /**
- * シンプル
+ * 基本構成
  * @param req 
  * @returns 
  */
 export async function POST(req: Request) {
   try {
-    // チャット履歴
-    const body = await req.json();
-    const messages = body.messages ?? [];
-    const modelName = body.model ?? 'fake-llm';
-
+    // チャット履歴と選択したモデル
+    const [messages, modelName] = await req.json().then(body => [
+      body.messages ?? [], 
+      body.model ?? 'fake-llm'
+    ]);
 
     // 直近のメッセージを取得
     const userMessage = messages.at(-1).content;
- 
     if (!userMessage) {
       return new Response(JSON.stringify({ error: 'No message provided' }), {
         status: 400,
@@ -30,41 +27,25 @@ export async function POST(req: Request) {
     }
  
     //プロンプトテンプレートの作成
-    let json = null;
-    try {
-      const filePath = path.join(process.cwd(), 'src/data/prompt-template.json');
-      const data = await readFile(filePath, 'utf-8');
-      
-      json = JSON.parse(data);
-    } catch(e){
-      console.log(e);
+    const template = await loadJsonFile<PromptTemplateJson[]>('src/data/prompt-template.json');
+    if (!template.success) {
+      return new Response(JSON.stringify({ error: template.error }),{
+        status: 500,
+        headers: { 'Content-type' : 'application/json' },
+      });
     }
-    
 
-    const prompt = PromptTemplate.fromTemplate(json[0].template);
+    // プロンプトテンプレートの抽出
+    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-langchain');
+    if (!found) {
+      throw new Error('テンプレートが見つかりませんでした');
+    }
+
+    // プロンプトの設定 
+    const prompt = PromptTemplate.fromTemplate(found.template);
  
     // モデルの指定
-        let model;
-        switch (modelName) {
-          case 'gpt-4o':
-            model = new ChatOpenAI({
-            apiKey: process.env.OPENAI_API_KEY!,
-            model: 'gpt-4o',
-            temperature: 0.6, // ランダム度（高いほど創造的）
-            });
-          break;
-          case 'claude-haiku':
-            model = new ChatAnthropic({
-              model: 'claude-3-5-haiku-20241022',
-            });
-          break;
-          default:
-            model = new FakeListChatModel({
-              responses: [
-                "（応答結果）",
-              ],
-            });
-        }
+    const model = getModel(modelName);
  
     // パイプ処理
     const chain = prompt.pipe(model);

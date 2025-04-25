@@ -23,9 +23,9 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
     //api: 'api/prot1',
      //api: 'api/chat',
      // api: 'api/langchain/rag/web',
-     //api: 'api/langchain',
+     api: 'api/langchain',
      //api: 'api/chat/with/json',
-     api: 'api/langchain/memory',
+     //api: 'api/langchain/memory',
     body: {
       model,
     },

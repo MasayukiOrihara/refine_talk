@@ -7,7 +7,7 @@ import { StringOutputParser } from '@langchain/core/output_parsers';
 import { readFile } from 'fs/promises';
 import path from 'path';
  
-// チャットの整形、この形式でチャットを行う
+// チャット形式
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
@@ -15,7 +15,6 @@ const formatMessage = (message: VercelChatMessage) => {
 /**
  * チャットボット(折原AI)
  * 報告に対するビジネスマナーの指摘
- * 
  * @param req 
  * @returns 
  */
