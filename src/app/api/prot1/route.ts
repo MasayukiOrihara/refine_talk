@@ -1,11 +1,9 @@
 import { PromptTemplate } from '@langchain/core/prompts';
-import { ChatOpenAI } from '@langchain/openai';
-import { ChatAnthropic } from "@langchain/anthropic";
-import { FakeListChatModel } from "@langchain/core/utils/testing";
 import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
 import { StringOutputParser } from '@langchain/core/output_parsers';
-import { readFile } from 'fs/promises';
-import path from 'path';
+
+import { getModel, isObject, loadJsonFile } from '@/contents/utils';
+import { PromptTemplateJson } from '@/contents/type';
  
 // チャット形式
 const formatMessage = (message: VercelChatMessage) => {
@@ -20,58 +18,42 @@ const formatMessage = (message: VercelChatMessage) => {
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const messages = body.messages ?? [];
-    const modelName = body.model ?? 'fake-llm';
+    // チャット履歴と選択したモデル
+    const [messages, modelName] = await req.json().then(body => [
+      body.messages ?? [], 
+      body.model ?? 'fake-llm'
+    ]);
  
     // 過去の履歴 {chat_history}用
     const formattedPreviousMessages = messages
       .slice(0, -1)
       .map(formatMessage);
- 
     //現在の履歴 {input}用 
     const currentMessageContent = messages[messages.length - 1].content;
  
     //プロンプトテンプレートの作成
-    let json = null;
-    try {
-      const filePath = path.join(process.cwd(), 'src/data/prompt-template.json');
-      const data = await readFile(filePath, 'utf-8');
-      
-      json = JSON.parse(data);
-    } catch(e){
-      console.log(e);
+    const template = await loadJsonFile<PromptTemplateJson[]>('src/data/prompt-template.json');
+    if (!template.success) {
+      return new Response(JSON.stringify({ error: template.error }),{
+        status: 500,
+        headers: { 'Content-type' : 'application/json' },
+      });
     }
-
+    // プロンプトテンプレートの抽出
+    const foundPoint = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot1-point');
+    const foundCharacter = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot1-character');
+    if (!foundPoint || !foundCharacter) {
+      throw new Error('テンプレートが見つかりませんでした');
+    }
     // プロンプトの準備
-    const pointingOutPrompt = PromptTemplate.fromTemplate(json[1].template);
-    const characterPrompt = PromptTemplate.fromTemplate(json[2].template);
+    const pointingOutPrompt = PromptTemplate.fromTemplate(foundPoint.template);
+    const characterPrompt = PromptTemplate.fromTemplate(foundCharacter.template);
 
     // 出力形式の指定
     const outputParser = new StringOutputParser();
  
     // モデルの指定
-    let model;
-    switch (modelName) {
-      case 'gpt-4o':
-        model = new ChatOpenAI({
-        apiKey: process.env.OPENAI_API_KEY!,
-        model: 'gpt-4o',
-        temperature: 0.6, // ランダム度（高いほど創造的）
-        });
-      break;
-      case 'claude-haiku':
-        model = new ChatAnthropic({
-          model: 'claude-3-5-haiku-20241022',
-        });
-      break;
-      default:
-        model = new FakeListChatModel({
-          responses: [
-            "（応答結果）",
-          ],
-        });
-    }
+    const model = getModel(modelName);
 
     // プロンプトとモデルをつなぐ
     const chain1 = pointingOutPrompt.pipe(model).pipe(outputParser);
