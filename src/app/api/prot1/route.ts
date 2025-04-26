@@ -13,6 +13,7 @@ const formatMessage = (message: VercelChatMessage) => {
 /**
  * チャットボット(折原AI)
  * 報告に対するビジネスマナーの指摘
+ * 【　4月末リファクタリング済み　】
  * @param req 
  * @returns 
  */

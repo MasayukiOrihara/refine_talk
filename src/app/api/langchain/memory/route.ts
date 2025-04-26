@@ -8,7 +8,8 @@ import { readFile, writeFile } from 'fs/promises';
 
 
 /**
- * シンプル
+ * 会話の外部保存機能
+ * 【　4月末リファクタリング済み　】
  * @param req 
  * @returns 
  */

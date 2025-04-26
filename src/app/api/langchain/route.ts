@@ -6,6 +6,7 @@ import type { PromptTemplateJson } from '@contents/type'
 
 /**
  * 基本構成
+ * 【　4月末リファクタリング済み　】
  * @param req 
  * @returns 
  */
