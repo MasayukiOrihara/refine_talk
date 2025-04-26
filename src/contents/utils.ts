@@ -2,7 +2,11 @@ import { ChatAnthropic } from '@langchain/anthropic';
 import { FakeListChatModel } from '@langchain/core/utils/testing';
 import { ChatOpenAI } from '@langchain/openai';
 import { readFile } from 'fs/promises';
+import fs from 'fs/promises';
 import path from 'path';
+
+import { MessageJson } from './type';
+import { LangChainAdapter } from 'ai';
 
 /**
  * JSONファイル読み込み用関数
@@ -28,6 +32,94 @@ export async function loadJsonFile<T = unknown>(relativePath: string): Promise<
             : 'Unknown error while reading JSON file',
         };
     }
+}
+
+/**
+ * 全文取得 & クローン
+ * stream時にストリーム配信する＆全文をJSONに保存する関数
+ * @param input 
+ * @param stream 
+ * @param path 
+ * @returns 
+ */
+export async function wrapStreamWithSave(
+  input: string,
+  stream: ReadableStream,
+  path: string
+): Promise<ReadableStream> {
+  const chunks: string[] = [];
+  const response = LangChainAdapter.toDataStreamResponse(stream); 
+  const reader = response.body?.getReader();
+
+  const wrappedStream = new ReadableStream({
+      async start(controller) {
+        if (!reader) {
+          controller.error(new Error(`ReadableStream reader not available`));
+          return;
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          if (value instanceof Uint8Array) {
+            const text = new TextDecoder().decode(value, { stream: true });
+
+            const cleaned = text
+              .split('\n')
+              .map(line => {
+                const match = line.match(/^\d+:"(.*)"$/);
+                return match ? match[1] : '';
+              })
+              .join('');
+
+            chunks.push(cleaned); // 保存用
+            controller.enqueue(value); // クライアント用
+          }
+        }
+        controller.close();
+
+        // ここで全文保存
+        await saveAsJson(input, chunks.join(''), path);
+      },
+    });
+
+  return wrappedStream;
+}
+
+/**
+ * 保存ユーティリティ
+ * @param output 
+ */
+export async function saveAsJson(inputText: string,outputText: string, relativePath: string) {
+  const filePath = path.join(process.cwd(), relativePath);
+  let existingData: MessageJson[] = [];
+
+  try {
+    const fileData = await readFile(filePath, 'utf-8');
+    existingData = JSON.parse(fileData);
+  } catch (error) {
+    console.log(error + ' :Create a new file.')
+  }
+
+  existingData.push({
+    input: inputText,
+    output: outputText,
+    createdAt: getJstIsoString(),
+  });
+
+  await fs.writeFile(filePath, JSON.stringify(existingData, null, 2), 'utf-8');
+}
+
+/**
+ * JST表記に変える関数
+ * @returns 
+ */
+export function getJstIsoString() {
+  const now = new Date();
+  now.setHours(now.getHours() + 9);
+
+  return now.toISOString().replace('Z', '+09:00');
 }
 
 /**

@@ -1,7 +1,8 @@
 /** メッセージ記憶用 */
-export type MessageMemoryJson = {
+export type MessageJson = {
     input: string;
     output: string;
+    createdAt: string;
 };
 
 /** プロンプトテンプレート */

@@ -1,10 +1,7 @@
-import { ChatAnthropic } from '@langchain/anthropic';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { FakeListChatModel } from '@langchain/core/utils/testing';
-import { ChatOpenAI } from '@langchain/openai';
-import { LangChainAdapter } from 'ai';
-import path from 'path';
-import { readFile, writeFile } from 'fs/promises';
+
+import { getModel, isObject, loadJsonFile, wrapStreamWithSave } from '@/contents/utils';
+import { MessageJson, PromptTemplateJson } from '@/contents/type';
 
 
 /**
@@ -15,15 +12,14 @@ import { readFile, writeFile } from 'fs/promises';
  */
 export async function POST(req: Request) {
   try {
-    // チャット履歴
-    const body = await req.json();
-    const messages = body.messages ?? [];
-    const modelName = body.model ?? 'fake-llm';
-
+    // チャット履歴と選択したモデル
+    const [messages, modelName] = await req.json().then(body => [
+      body.messages ?? [], 
+      body.model ?? 'fake-llm'
+    ]);
 
     // 直近のメッセージを取得
     const userMessage = messages.at(-1).content;
- 
     if (!userMessage) {
       return new Response(JSON.stringify({ error: 'No message provided' }), {
         status: 400,
@@ -31,85 +27,49 @@ export async function POST(req: Request) {
       });
     }
 
-    // 過去メッセージの読み込み
-    let memoryJson = [];
-    const filePathMemory = path.join(process.cwd(), 'src/data/message-memory.json');
-    try {
-      const memoryData = await readFile(filePathMemory, 'utf-8');
-      memoryJson = JSON.parse(memoryData);
-
-      // 配列でない場合は配列として初期化
-      if (!Array.isArray(memoryJson)) {
-        console.log('既存のデータが配列ではありません。空の配列として初期化します。');
-        memoryJson = [];
-      }
-    } catch (e){
-      console.log(e);
+    //　会話記憶の読み込み
+    const memory = await loadJsonFile<MessageJson[]>('src/data/message-memory.json');
+    if (!memory.success) {
+      return new Response(JSON.stringify({ error: memory.error }),{
+        status: 500,
+        headers: { 'Content-type' : 'application/json' },
+      });
     }
 
- 
-    //プロンプトテンプレートの作成
-    let promptJson = null;
-    try {
-      const filePathPrompt = path.join(process.cwd(), 'src/data/prompt-template.json');
-      const promptData = await readFile(filePathPrompt, 'utf-8');
-      promptJson = JSON.parse(promptData);
-    } catch(e){
-      console.log(e);
+    //　プロンプトテンプレート読み込み
+    const template = await loadJsonFile<PromptTemplateJson[]>('src/data/prompt-template.json');
+    if (!template.success) {
+      return new Response(JSON.stringify({ error: template.error }),{
+        status: 500,
+        headers: { 'Content-type' : 'application/json' },
+      });
     }
-    
-    const prompt = PromptTemplate.fromTemplate(promptJson[0].template);
- 
+
+    // プロンプトテンプレートの抽出
+    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-langchain');
+    if (!found) {
+      throw new Error('テンプレートが見つかりませんでした');
+    }
+
+    // プロンプトの設定 
+    const prompt = PromptTemplate.fromTemplate(found.template);
+  
     // モデルの指定
-        let model;
-        switch (modelName) {
-          case 'gpt-4o':
-            model = new ChatOpenAI({
-            apiKey: process.env.OPENAI_API_KEY!,
-            model: 'gpt-4o',
-            temperature: 0.6, // ランダム度（高いほど創造的）
-            });
-          break;
-          case 'claude-haiku':
-            model = new ChatAnthropic({
-              model: 'claude-3-5-haiku-20241022',
-            });
-          break;
-          default:
-            model = new FakeListChatModel({
-              responses: [
-                "（応答結果）",
-              ],
-            });
-        }
+    const model = getModel(modelName);
  
     // パイプ処理
     const chain = prompt.pipe(model);
  
     // ストリーミング応答を取得
     const stream = await chain.stream({ message: userMessage });
-
-    // すべて出力
-    const finalCharacterPrompt = await chain.invoke({ message: userMessage });
-
     
-
-    //書き出し
-    try {
-      const data = {
-        input: userMessage,
-        output: finalCharacterPrompt.content
-      };
-
-      memoryJson.push(data);
-      await writeFile(filePathMemory, JSON.stringify(memoryJson, null, 2), 'utf-8');
-      console.log('JSONに書き出しました');
-    } catch (err) {
-      console.error(err);
-    }
+    // 全文保存とストリーミングの同時実行
+    const wrappedStream = await wrapStreamWithSave(userMessage, stream, 'src/data/memory-output.json');
  
     // LangChainのストリーム出力を Webレスポンス用のストリーム形式に変換する
-    return LangChainAdapter.toDataStreamResponse(stream);
+    return new Response(wrappedStream, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
