@@ -36,5 +36,19 @@
         "name": "prompt1_output"
       }
     ]
+  },
+  {
+    "name": "api-langchain-memory",
+    "template": "Current conversation:\n{chat_history}\n\nuser:{message}\nassistant:",
+    "variables": [
+      {
+        "id": 1,
+        "name": "chat_history"
+      },
+      {
+        "id": 2,
+        "name": "message"
+      }
+    ]
   }
 ]

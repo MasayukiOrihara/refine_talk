@@ -28,13 +28,17 @@ export async function POST(req: Request) {
     }
 
     //　会話記憶の読み込み
-    const memory = await loadJsonFile<MessageJson[]>('src/data/message-memory.json');
-    if (!memory.success) {
-      return new Response(JSON.stringify({ error: memory.error }),{
+    const chatMemory = await loadJsonFile<MessageJson[]>('src/data/memory-output.json');
+    if (!chatMemory.success) {
+      return new Response(JSON.stringify({ error: chatMemory.error }),{
         status: 500,
         headers: { 'Content-type' : 'application/json' },
       });
     }
+    // 記憶を加工
+    const chatHistory = chatMemory.data
+      .map(item => `user: ${item.input}\nassistant: ${item.output}`)
+      .join('\n---\n');
 
     //　プロンプトテンプレート読み込み
     const template = await loadJsonFile<PromptTemplateJson[]>('src/data/prompt-template.json');
@@ -46,7 +50,7 @@ export async function POST(req: Request) {
     }
 
     // プロンプトテンプレートの抽出
-    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-langchain');
+    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-langchain-memory');
     if (!found) {
       throw new Error('テンプレートが見つかりませんでした');
     }
@@ -61,7 +65,7 @@ export async function POST(req: Request) {
     const chain = prompt.pipe(model);
  
     // ストリーミング応答を取得
-    const stream = await chain.stream({ message: userMessage });
+    const stream = await chain.stream({ chat_history: chatHistory, message: userMessage });
     
     // 全文保存とストリーミングの同時実行
     const wrappedStream = await wrapStreamWithSave(userMessage, stream, 'src/data/memory-output.json');
