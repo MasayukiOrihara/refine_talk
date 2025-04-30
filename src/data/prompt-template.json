@@ -50,5 +50,33 @@
         "name": "message"
       }
     ]
+  },
+  {
+    "name": "api-prot2-question1",
+    "template": "あなたは出題者です。答えを教えずに次のなぞなぞを出してください。\nquestion:{question}\n",
+    "variables": [
+      {
+        "id": 1,
+        "name": "question"
+      }
+    ]
+  },
+  {
+    "name": "api-prot2-question2",
+    "template": "あなたは出題者です。答えを教えずにHINTに沿ってヒントを出してください。HINTが正解！の場合は回答者を褒めたたえてあげてください。\nHINT:{hint}\n\nCurrent conversation:\n\n{chat_history}\n\nuser:{message}\nassistant:",
+    "variables": [
+      {
+        "id": 1,
+        "name": "hint"
+      },
+      {
+        "id": 2,
+        "name": "chat_history"
+      },
+      {
+        "id": 3,
+        "name": "message"
+      }
+    ]
   }
 ]

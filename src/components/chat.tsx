@@ -21,11 +21,12 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
     //api: 'api/prot1',
-     //api: 'api/chat',
-     // api: 'api/langchain/rag/web',
-     //api: 'api/langchain',
-     //api: 'api/chat/with/json',
-     api: 'api/langchain/memory',
+    api: 'api/prot2/question',
+    //api: 'api/chat',
+    // api: 'api/langchain/rag/web',
+    //api: 'api/langchain',
+    //api: 'api/chat/with/json',
+    // api: 'api/langchain/memory',
     body: {
       model,
     },

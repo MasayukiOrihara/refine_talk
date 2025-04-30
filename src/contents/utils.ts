@@ -143,7 +143,7 @@ export function getModel(modelName: string){
     case 'gpt-4o':
       model = new ChatOpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       temperature: 0.7, // ランダム度（高いほど創造的）
       });
     break;
