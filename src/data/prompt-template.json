@@ -78,5 +78,19 @@
         "name": "message"
       }
     ]
+  },
+  {
+    "name": "api-langgraph",
+    "template": "Current conversation:\n\n{chat_history}\n\nuser:{message}\nassistant:",
+    "variables": [
+      {
+        "id": 1,
+        "name": "chat_history"
+      },
+      {
+        "id": 2,
+        "name": "message"
+      }
+    ]
   }
 ]

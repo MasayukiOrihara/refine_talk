@@ -1,14 +1,18 @@
 import { PromptTemplateJson } from "@/contents/type";
-import { getModel, isObject, loadJsonFile } from "@/contents/utils";
+import { isObject, loadJsonFile } from "@/contents/utils";
 import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { HumanMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { DynamicTool } from "@langchain/core/tools";
-import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
-import { createReactAgent, ToolNode } from "@langchain/langgraph/prebuilt";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
-import { LangChainAdapter } from "ai";
+import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
 
+
+// チャット形式
+const formatMessage = (message: VercelChatMessage) => {
+  return `${message.role}: ${message.content}`;
+};
 
 /**
  * もし調べ物が必要ならそれに応じてwebから取得する
@@ -20,6 +24,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
     const modelName = body.model ?? 'fake-llm';
+
+    // 過去の履歴 {chat_history}用
+    const formattedPreviousMessages = messages
+      .slice(0, -1)
+      .map(formatMessage);
 
     // 直近のメッセージを取得
     const userMessage = messages.at(-1).content;
@@ -45,14 +54,23 @@ export async function POST(req: Request) {
       name: "tavily_search",
       description: "Search the web using Tavily API",
       func: async (input: string) => {
+        // ここでweb検索をしてる
         const docs = await tavilyRetriever.invoke(input);
         return docs.map((doc) => doc.pageContent).join("\n\n");
       },
     });
 
-    // モデルの定義
-    const model = getModel(modelName).bindTools?([tavilyTool]);
-    const agent = createReactAgent(model);
+    // モデルの定義(固定じゃないとエラーが出るのでとりあえず固定)
+    const model = new ChatOpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: 'gpt-4o',
+      temperature: 0.3,
+    }).bindTools([tavilyTool]);
+
+    const agent = createReactAgent({
+      llm: model,
+      tools: [tavilyTool],
+    });
  
     //プロンプトテンプレートの作成
     const template = await loadJsonFile<PromptTemplateJson[]>('src/data/prompt-template.json');
@@ -64,7 +82,7 @@ export async function POST(req: Request) {
     }
 
     // プロンプトテンプレートの抽出
-    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-langchain');
+    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-langgraph');
     if (!found) {
       throw new Error('テンプレートが見つかりませんでした');
     }
@@ -76,10 +94,15 @@ export async function POST(req: Request) {
     const chain = prompt.pipe(model);
 
     // チャット結果の取得
-    const result= await agent.call([new HumanMessage(userMessage)])
+    const result= await agent.invoke({
+      messages: [new HumanMessage(userMessage)],
+    });
 
     // ストリーミング応答を取得
-    const stream = await chain.stream({ message: result });
+    const stream = await chain.stream({ 
+      chat_history: formattedPreviousMessages,
+      message: result 
+    });
 
   return LangChainAdapter.toDataStreamResponse(stream);
 
