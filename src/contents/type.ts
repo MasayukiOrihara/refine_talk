@@ -14,4 +14,15 @@ export type PromptTemplateJson = {
     name: string,
     template: string,
     variables?: Variables[]
-}
+};
+
+/** なぞなぞ問題 */
+export type RiddleMetadata = {
+    id: number,
+    answer: string,
+    hint: string
+};
+export type RiddleJson = {
+    pageContent: string,
+    metadata: RiddleMetadata
+};

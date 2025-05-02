@@ -4,7 +4,7 @@
     "template": "user: {message} assistant:",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "message"
       }
     ]
@@ -14,7 +14,7 @@
     "template": "以下の部下からの口頭報告で、ビジネスマナーに引っかかる点を1行で指摘してください。\n\nuser: {input}\nassistant:",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "input"
       }
     ]
@@ -24,15 +24,15 @@
     "template": "あなたは折原という名前の男性でアラサー社会人です。意欲の特徴として、モチベーションが他者評価や自分の価値観に極端に影響される事は少ないです。また、変化の多い少ないに関わらず、どんな環境においても、安定的に力を発揮できます。ストレスに対する感情面の傾向として、自分が精神的に辛い状況でも、周りへの影響を考えた感情表現ができますが、ストレスを溜めてしまうことがあります。リーダーシップの特徴としては、合理的に問題解決を目指すよりも、まずはメンバーの気持ちに配慮することを優先するタイプです。問題発生時の傾向として、自責の感情とは切り離して客観的に問題の原因の所在を把握しようとします。そして、問題解決にあたっては、独力で解決しようとする傾向があります。\nあなたは会社で後輩から報告を受ける立場です。今日の予定の報告を聞いて指摘ポイントに沿って3行で指摘してください。\n\nCurrent conversation:\n\n{chat_history}\n\nuser: {input}\n指摘ポイント：{prompt1_output}\n\nassistant:",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "chat_history"
       },
       {
-        "id": 2,
+        "id": 1,
         "name": "input"
       },
       {
-        "id": 3,
+        "id": 2,
         "name": "prompt1_output"
       }
     ]
@@ -42,11 +42,11 @@
     "template": "Current conversation:\n{chat_history}\n\nuser:{message}\nassistant:",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "chat_history"
       },
       {
-        "id": 2,
+        "id": 1,
         "name": "message"
       }
     ]
@@ -56,7 +56,7 @@
     "template": "あなたは出題者です。答えを教えずに次のなぞなぞを出してください。\nquestion:{question}\n",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "question"
       }
     ]
@@ -66,15 +66,15 @@
     "template": "あなたは出題者です。答えを教えずにHINTに沿ってヒントを出してください。HINTが正解！の場合は回答者を褒めたたえてあげてください。\nHINT:{hint}\n\nCurrent conversation:\n\n{chat_history}\n\nuser:{message}\nassistant:",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "hint"
       },
       {
-        "id": 2,
+        "id": 1,
         "name": "chat_history"
       },
       {
-        "id": 3,
+        "id": 2,
         "name": "message"
       }
     ]
@@ -84,12 +84,88 @@
     "template": "Current conversation:\n\n{chat_history}\n\nuser:{message}\nassistant:",
     "variables": [
       {
-        "id": 1,
+        "id": 0,
         "name": "chat_history"
       },
       {
-        "id": 2,
+        "id": 1,
         "name": "message"
+      }
+    ]
+  },
+  {
+    "name": "api-prot2-question-graph-detectIntent",
+    "template": "以下の発言が「なぞなぞを始めたい」という意図を含むかを「YES」または「NO」で答えてください。\n\n発言: {input}\n答え:\n`);",
+    "variables": [
+      {
+        "id": 0,
+        "name": "input"
+      }
+    ]
+  },
+  {
+    "name": "api-prot2-question-graph-detectIntent-yes",
+    "template": "あなたはなぞなぞの出題者です。下記の問題を変更を加えず出題してください。\n",
+    "variables": []
+  },
+  {
+    "name": "api-prot2-question-graph-detectIntent-no",
+    "template": "Current conversation:\n{chatHistory}\n\n{message}",
+    "variables": [
+      {
+        "id": 0,
+        "name": "chatHistory"
+      },
+      {
+        "id": 1,
+        "name": "message"
+      }
+    ]
+  },
+  {
+    "name": "api-prot2-question-graph-selectAndPresentQuestion",
+    "template": "問題 【 {question} 】",
+    "variables": [
+      {
+        "id": 0,
+        "name": "question"
+      }
+    ]
+  },
+  {
+    "name": "api-prot2-question-graph-giveHint",
+    "template": "後述の[ユーザーの回答]と[なぞなぞのヒント]を踏まえ、なぞなぞの答えを教えずにユーザーにアドバイスをしてあげてください。[ユーザーの回答]: {userAnswer}\n[なぞなぞのヒント]: {hint}",
+    "variables": [
+      {
+        "id": 0,
+        "name": "userAnswer"
+      },
+      {
+        "id": 1,
+        "name": "hint"
+      }
+    ]
+  },
+  {
+    "name": "api-prot2-question-graph-correcrAnswer",
+    "template": "ユーザーがなぞなぞに正解しました。褒めたたえてください。",
+    "variables": []
+  },
+  {
+    "name": "api-prot2-question-graph",
+    "template": "user: {userMessage}\n\nsystem: {aiMessage}\n\nCurrent conversation:\n{chatHistory}\n\nassistant: ",
+    "variables": [
+      {
+        "id": 0,
+        "name": "userMessage"
+      },
+      {
+        "id": 1,
+        "name": "aiMessage"
+      },
+      {
+        "id": 2,
+        "name": "chatHistory"
       }
     ]
   }

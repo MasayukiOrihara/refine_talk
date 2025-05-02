@@ -2,56 +2,52 @@ import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { OpenAIEmbeddings } from "@langchain/openai";
-import { Document } from "@langchain/core/documents";
-import { Annotation, messagesStateReducer, StateGraph, StateType } from "@langchain/langgraph";
+import { Annotation, messagesStateReducer, StateGraph } from "@langchain/langgraph";
 import { MessagesAnnotation } from "@langchain/langgraph";
 import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { NextApiRequest, NextApiResponse } from 'next';
-import { LangChainAdapter } from "ai";
-import { z } from "zod";
+import { Message as VercelChatMessage, LangChainAdapter } from 'ai';
+import { isObject, loadJsonFile } from "@/contents/utils";
+import { PromptTemplateJson, RiddleJson } from "@/contents/type";
 
-
+// モデルのセット（OPENAI固定）
 const model = new ChatOpenAI({ apiKey: process.env.OPENAI_API_KEY, model: "gpt-4o", temperature: 0.3 });
-// とりあえず状態保存
+// なぞなぞモードのフラグ状態保存
 let wantRiddleState = false;
-
-/**
- * なぞなぞデータ
- */
-const questions = [
-  {
-    pageContent: "パンはパンでも食べられないパンは？",
-    metadata: { id: 0, answer: "フライパン" }
-  },
-  {
-    pageContent: "ペンはペンでも食べられるペンは？",
-    metadata: { id: 1, answer: "ペンネ" }
-  }
-];
-
-/**
- * 最初の設問プロンプト
- */
-const detectIntentPrompt = PromptTemplate.fromTemplate(`
-  以下の発言が「なぞなぞを始めたい」という意図を含むかを「YES」または「NO」で答えてください。
-  
-  発言: {input}
-  答え:
-`);
+let riddleIdState = 0;
+// なぞなぞ問題の読み込み
+const questions = await loadJsonFile<RiddleJson[]>('src/data/riddle.json');
+// プロンプトの読み込み
+const template = await loadJsonFile<PromptTemplateJson[]>('src/data/prompt-template.json');
+// プロンプトチェック用関数
+function createErrorResponse(message: string, statusCode: number = 500): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status: statusCode,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+// メッセージ形式
+const formatMessage = (message: VercelChatMessage) => {
+  return `${message.role}: ${message.content}`;
+};
 
 /**
  * なぞなぞを始めるかどうかの問い
  * @param param 
  * @returns 
  */
-async function detectIntent({ messages, wantRiddle }: typeof StateAnnotation.State) {
-  console.log("0.2: " + messages[0].content);
-  console.log("0.3: " + wantRiddle);
+async function detectIntent({ messages }: typeof StateAnnotation.State) {
+  // プロンプトテンプレートの抽出
+  if (!template.success) return createErrorResponse(template.error);
+  const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph-detectIntent');
+  const foundYes = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph-detectIntent-yes');
+  const foundNo = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph-detectIntent-no');
+  if (!found || !foundYes || !foundNo) throw new Error('テンプレートが見つかりませんでした');
+
   // 最初にLLMに聞いてみる
+  const detectIntentPrompt = PromptTemplate.fromTemplate(found.template);
   const detectIntentChain = detectIntentPrompt.pipe(model);
   const userMsg = messages[messages.length - 1].content;
   const response = await detectIntentChain.invoke({ input: userMsg });
-  console.log("0.4: " + response.content);
 
   // 答え次第では始める
   const answerText =
@@ -61,46 +57,31 @@ async function detectIntent({ messages, wantRiddle }: typeof StateAnnotation.Sta
 
   const want = answerText.trim().toUpperCase().includes("YES");
   return {
-    messages: [...messages, new AIMessage(`${want ? "あなたはなぞなぞの出題者です。下記の問題を変更を加えず出題してください。\n" : "（世間話を行う）\n"}`)],
+    messages: [...messages, new AIMessage(`${want ? foundYes.template : "世間話"}`)],
     wantRiddle: want,
   };
 }
 
-/**
- * 終わりのメッセージ
- */
-async function exit({ messages, wantRiddle }: typeof StateAnnotation.State) {
-  return {
-    messages: [...messages, new AIMessage("また今度やろうね。")],
-  };
-}
 
 /**
  * 問題の提示と選定
  */
-async function selectAndPresentQuestion({ messages, wantRiddle }: typeof StateAnnotation.State) {
-  // ランダムに問題を選択
-  const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-  messages[messages.length -1].content += "問題【" + randomQuestion.pageContent + "】";
+async function selectAndPresentQuestion({ messages, riddleId}: typeof StateAnnotation.State) {
+  // なぞなぞがちゃんと読み込まれているかの確認
+  if (!questions.success) return createErrorResponse(questions.error);
+  // テンプレートチェック
+  if (!template.success) return createErrorResponse(template.error);
+  const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph-selectAndPresentQuestion');
+  if (!found) throw new Error('テンプレートが見つかりませんでした');
 
-  console.log("1: " + messages[messages.length -1].content);
+  // ランダムに問題を選択
+  const decidedRiddleId = Math.floor(Math.random() * questions.data.length);
+  const randomQuestion = questions.data[decidedRiddleId];
+  messages[messages.length -1].content += found.template.replace("{question}", randomQuestion.pageContent);
 
   return { 
     messages: [...messages],
-  };
-}
-
-
-/** 
- * ユーザーに回答を促すノード
- */ 
-async function receiveAnswer({ messages, wantRiddle }: typeof StateAnnotation.State) {
-  // なぞなぞは継続
-  wantRiddleState = wantRiddle;
-
-  console.log("2: " + wantRiddleState);
-  return {
-    messages: [...messages, new AIMessage("userに回答を求めてください。")],
+    riddleId: decidedRiddleId
   };
 }
 
@@ -108,7 +89,7 @@ async function receiveAnswer({ messages, wantRiddle }: typeof StateAnnotation.St
 /**
  * ヒント計算ノード
  */
-async function giveHint({ messages, wantRiddle, clear }: typeof StateAnnotation.State)  {
+async function giveHint({ messages, riddleId }: typeof StateAnnotation.State)  {
   const userMessage = messages[messages.length - 1];
   const userAnswer = typeof userMessage.content === "string"
     ? userMessage.content
@@ -118,43 +99,74 @@ async function giveHint({ messages, wantRiddle, clear }: typeof StateAnnotation.
     apiKey: process.env.OPENAI_API_KEY,
     modelName: "text-embedding-3-large"
   });
-  const docs = questions.map(q => new Document({
-    pageContent: q.metadata.answer,
-    metadata: { ...q.metadata, question: q.pageContent }
-  }));
+
+  // なぞなぞがちゃんと読み込まれているかの確認
+  if (!questions.success) return createErrorResponse(questions.error);
+  // テンプレートチェック
+  if (!template.success) return createErrorResponse(template.error);
+  const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph-giveHint');
+  if (!found) throw new Error('テンプレートが見つかりませんでした');
+
+  const riddleAnswer = [questions.data[riddleId].metadata.answer];
+  const RiddleMetadata = questions.data[riddleId].metadata;
   
-  const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
+  const vectorStore = await MemoryVectorStore.fromTexts(riddleAnswer, RiddleMetadata, embeddings);
   const result = await vectorStore.similaritySearchWithScore(userAnswer, 1);
   const [bestMatch, score] = result[0];
-  console.log("2.5: " + score);
-  let hint = "ユーザーに応援の言葉を投げかけてください。";
-  if (score > 0.6) hint = "ユーザーに答えに近かったことを伝えてください。";
-  if (score >= 0.9) return {clear: true};
+  console.log("score: " + score);
 
-  console.log("3: " + hint);
+  // ユーザーの回答、ヒントを使ってヒントを与える
+  const hint = found
+    .template
+    .replace("{userAnswer}", userAnswer)
+    .replace("{hint}", questions.data[riddleId].metadata.hint);
+ 
+  //  正解（閾値は順次変える）
+  if (score >= 0.75) return {clear: true};
+
   return {
     messages: [...messages, new AIMessage(hint)],
   };
 }
 
 
+/** 
+ * ユーザーの回答前の状態保存ノード
+ */ 
+async function receiveAnswerExit({ wantRiddle, riddleId }: typeof StateAnnotation.State) {
+  wantRiddleState = wantRiddle;
+  riddleIdState = riddleId;
+}
+
+/** 
+ * 前のターンの終わり状態を次ターンに渡す状態保存ノード
+ */ 
+async function startState({ wantRiddle, riddleId }: typeof StateAnnotation.State) {
+  return { 
+    wantRiddle: wantRiddleState,
+    riddleId: riddleIdState
+  };
+}
+
 /**
- * プロンプト+モデルチェーン
+ * 終わりノード
  */
-
-const prompt = PromptTemplate.fromTemplate("{chat_history}\nuser: {message}\nAI:");
-const chain = prompt.pipe(model);
-
-
-/**
- * 応答生成ノード
- */
-async function answer({ messages }: typeof MessagesAnnotation.State) {
-  // なぞなぞはおしまい
+async function exit({ wantRiddle }: typeof StateAnnotation.State) {
   wantRiddleState = false;
+  riddleIdState = 0;
+}
+
+/**
+ * 正解終わりノード
+ */
+async function correcrAnswer({ messages }: typeof MessagesAnnotation.State) {
+  // テンプレートチェック
+  if (!template.success) return createErrorResponse(template.error);
+  const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph-correcrAnswer');
+  if (!found) throw new Error('テンプレートが見つかりませんでした');
 
   return {
-    messages: [...messages, new AIMessage("ユーザーがなぞなぞに正解しました。褒めたたえてください。")],
+    messages: [...messages, new AIMessage(found.template)],
   };
 }
 
@@ -175,21 +187,27 @@ export const StateAnnotation = Annotation.Root({
     value: (state: boolean = false, action: boolean) => action,
     default: () => false,
   }),
+  riddleId: Annotation<number>({
+    value: (state: number = 0, action: number) => action,
+    default: () => 0,
+  }),
 });
 
 const graph = new StateGraph(StateAnnotation)
-  .addNode("detectIntent", detectIntent)  // 始めるかどうかのノード
-  .addNode("selectQuestion", selectAndPresentQuestion) // 問題選定ノード
-  .addNode("receiveAnswer", receiveAnswer) // ユーザーの回答を受け付けるノード
-  .addNode("giveHint", giveHint) // ヒント計算ノード
-  .addNode("answer", answer) // 応答生成ノード
-  .addNode("exit", exit)  // 終了セリフノード
+  .addNode("start", startState)
+  .addNode("detect", detectIntent)
+  .addNode("question", selectAndPresentQuestion)
+  .addNode("recExit", receiveAnswerExit)
+  .addNode("hint", giveHint)
+  .addNode("correcr", correcrAnswer)
+  .addNode("exit", exit)
 
-  .addConditionalEdges("__start__", (state) => state.wantRiddle ? "giveHint" : "detectIntent")
-  .addConditionalEdges("detectIntent", (state) => state.wantRiddle ? "selectQuestion" : "exit")
-  .addConditionalEdges("giveHint" , (state) => state.clear ? "answer" : "receiveAnswer")
-  .addEdge("selectQuestion", "receiveAnswer")
-  .addEdge("answer", "exit")
+  .addEdge("__start__", "start")
+  .addConditionalEdges("start", (state) => state.wantRiddle ? "hint" : "detect")
+  .addConditionalEdges("hint" , (state) => state.clear ? "correcr" : "recExit")
+  .addEdge("correcr", "exit")
+  .addConditionalEdges("detect", (state) => state.wantRiddle ? "question" : "exit")
+  .addEdge("question", "recExit")
   .compile();
 
 
@@ -200,8 +218,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
-    
-    console.log("0");
 
     // 直近のメッセージを取得
     const userMessage = messages.at(-1).content;
@@ -212,19 +228,27 @@ export async function POST(req: Request) {
       });
     }
 
+    const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
+
     // ユーザーのメッセージを受け取る
     const result = await graph.invoke({
       messages: [new HumanMessage(userMessage)],
     });
     
-    console.log("98: " + result.messages[1].content);
-    console.log("99: " + wantRiddleState);
+    console.log("AI: " + result.messages[1].content);
+
+    // テンプレートチェック
+    if (!template.success) return createErrorResponse(template.error);
+    const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph');
+    if (!found) throw new Error('テンプレートが見つかりませんでした');
 
     // ストリーミング応答を取得
-    const prompt = PromptTemplate.fromTemplate("assistant: {message}\nassistant:");
+    const prompt = PromptTemplate.fromTemplate(found.template);
     const chain = prompt.pipe(model);
     const stream = await chain.stream({ 
-      message: result.messages[1].content
+      userMessage: userMessage,
+      aiMessage: result.messages[1].content,
+      chatHistory: formattedPreviousMessages
     });
 
   // LangChainのストリーム出力を Webレスポンス用のストリーム形式に変換する
