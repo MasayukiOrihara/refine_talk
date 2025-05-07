@@ -70,7 +70,7 @@ async function explainEngineeringTopics({ messages }: typeof StateAnnotation.Sta
 
   // AIに開発についての話をさせる
   return {
-    messages: [...messages, new AIMessage("あなたは講師です。開発の仕事について語ってください。\n")],
+    messages: [...messages, new AIMessage("開発の仕事について語ってください。\n")],
   };
 }
 
@@ -199,7 +199,7 @@ async function questionReason({ messages }: typeof StateAnnotation.State) {
   console.log("questionReason");
 
   // 問題を出してもらう
-  messages[messages.length -1].content += "上記を実施したのち講師として、[報連相はリーダーのため]ということを前提に下記の質問をしてください。\n[報連相はなぜリーダーのためのものなのか]";
+  messages[messages.length -1].content += "上記を実施したのち、[報連相はリーダーのため]ということを前提に下記の質問をしてください。\n[報連相はなぜリーダーのためのものなのか]";
   return {
     messages: [...messages]
   };
@@ -232,7 +232,16 @@ async function praiseReasonCleared({ messages }: typeof StateAnnotation.State) {
     : userMessage.content.map((c: any) => c.text ?? "").join("");
 
   return {
-    messages: [...messages, new AIMessage(`ユーザーに正解したことを報告してください。\n`)],
+    messages: [...messages, new AIMessage(`あなたはユーザーに「${userAnswer}」が正解だったことを報告してください。\n`)],
+  };
+}
+
+/** 2つ目の問題「なぜリーダーのためなのか」を全問正解したことをほめるノード */
+async function praiseReasonAllCleared({ messages }: typeof StateAnnotation.State) {
+  console.log("praiseReasonAllCleared");
+
+  return {
+    messages: [...messages, new AIMessage(`問題に正解したのであなたはユーザーを褒めてください。\n`)],
   };
 }
 
@@ -240,8 +249,10 @@ async function praiseReasonCleared({ messages }: typeof StateAnnotation.State) {
 async function explainNewsletter({ messages }: typeof StateAnnotation.State) {
   console.log("explainNewsletter");
 
+
+  messages[messages.length -1].content += "今までの会話の流れを受けてなぜ報連相が必要なのか解説してください。また解説の後ユーザーにこの講習を終えての所感を聞いてください。\n";
   return {
-    messages: [...messages, new AIMessage("あなたは講師です。なぜ報連相が必要なのか解説してください。また解説の後ユーザーにこの講習を終えての所感を聞いてください。\n")],
+    messages: [...messages]
   };
 }
 
@@ -255,7 +266,7 @@ async function isProcessEnd({ messages }: typeof StateAnnotation.State) {
   console.log("isProccessEnd");
 
   return {
-    messages: [...messages, new AIMessage("あなたは講師です。報連相の講習が終了したことを伝えてください。\n")],
+    messages: [...messages, new AIMessage("報連相の講習が終了したことを伝えてください。\n")],
   };
 }
 
@@ -306,6 +317,7 @@ const graph = new StateGraph(StateAnnotation)
   .addNode("exit", exit)
   .addNode("praise1", praiseTargetCleared)
   .addNode("praise2", praiseReasonCleared)
+  .addNode("praise3", praiseReasonAllCleared)
   .addNode("explainStart", explainEngineeringTopics)
   .addNode("explainEnd", explainNewsletter)
   .addNode("question1", questionTarget)
@@ -334,7 +346,8 @@ const graph = new StateGraph(StateAnnotation)
   .addEdge("hint2", "question2")
   .addEdge("praise2", "question2")
   .addEdge("question2", "exit")
-  .addEdge("is3", "explainEnd")
+  .addEdge("is3", "praise3")
+  .addEdge("praise3", "explainEnd")
   .addEdge("explainEnd", "exit")
   .addEdge("is4", "exit")
   .addEdge("exit", "__end__")
@@ -354,7 +367,7 @@ export async function POST(req: Request) {
     const messages = body.messages ?? [];
 
     // 過去の履歴
-    const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage)
+    const formattedPreviousMessages =  messages.slice(0, -1).map(formatMessage)
     // 直近のメッセージを取得
     const userMessage = messages.at(-1).content;
     if (!userMessage) {
@@ -373,16 +386,16 @@ export async function POST(req: Request) {
         
     // テンプレートチェック
         if (!template.success) return createErrorResponse(template.error);
-        const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2-question-graph');
+        const found = template.data.find(obj => isObject(obj) && obj['name'] === 'api-prot2');
         if (!found) throw new Error('テンプレートが見つかりませんでした');
     
         // ストリーミング応答を取得
         const prompt = PromptTemplate.fromTemplate(found.template);
         const chain = prompt.pipe(model);
         const stream = await chain.stream({ 
+          chatHistory: formattedPreviousMessages,
           userMessage: userMessage,
           aiMessage: result.messages[1].content,
-          chatHistory: formattedPreviousMessages
         });
 
     return LangChainAdapter.toDataStreamResponse(stream);
