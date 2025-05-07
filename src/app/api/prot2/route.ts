@@ -1,4 +1,4 @@
-import { PromptTemplateJson } from '@/contents/type';
+import { Flags, PromptTemplateJson, States } from '@/contents/type';
 import { isObject, loadJsonFile } from '@/contents/utils';
 import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
 import { PromptTemplate } from '@langchain/core/prompts';
@@ -31,34 +31,37 @@ function createErrorResponse(message: string, statusCode: number = 500): Respons
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
 };
-// フラグ状態の保持
-let isStartedState = false;
-let isTargetState = false;
-let isReasonState = false;
-let checkTargetState = false;
-let checkReasonState = false;
 
+// フラグ管理
+const transitionStates = {
+  isStarted: false,
+  isTarget: false,
+  isReason: false,
+  checkTarget: false,
+  checkReason: false,
+}
+const reasonFlags = {
+  deadline: false,
+  function: false,
+  quality: false,
+}
 
 
 /** 初めの状態変更ノード */
 async function setState({ messages }: typeof StateAnnotation.State) {
-  console.log("setState");
+  console.log("setState:");
 
   // 現在の状態
   return {
-    isStarted: isStartedState,
-    isTarget: isTargetState,
-    isReason: isReasonState,
-    checkTarget: checkTargetState,
-    checkReason: checkReasonState
+    transition: {...transitionStates},
   }
 }
 
 /** 報連相ワークは始まっているかの状態確認ノード */
-async function isProcessStarted({ messages, isStarted }: typeof StateAnnotation.State) {
-  console.log("isProcessStarted: " + isStarted);
+async function isProcessStarted({ messages, transition }: typeof StateAnnotation.State) {
+  console.log("isProcessStarted: " + transition.isStarted);
 
-  isStartedState = true;
+  transitionStates.isStarted = true;
 }
 
 /** 開発の仕事を想像させるノード */
@@ -72,8 +75,8 @@ async function explainEngineeringTopics({ messages }: typeof StateAnnotation.Sta
 }
 
 /** 1つ目の問題「誰のため」は正解したかの状態確認ノード */
-async function checkTargetMatch({ messages, checkTarget }: typeof StateAnnotation.State) {
-  console.log("checkTargetMatch: " + checkTarget);
+async function checkTargetMatch({ messages, transition }: typeof StateAnnotation.State) {
+  console.log("checkTargetMatch: " + transition.checkTarget);
 
   const userMessage = messages[messages.length - 1];
   const userAnswer = typeof userMessage.content === "string"
@@ -93,9 +96,9 @@ async function checkTargetMatch({ messages, checkTarget }: typeof StateAnnotatio
 
   // 正解パターン
   if (score >= 0.8) {
-    checkTargetState = true;
+    transitionStates.checkTarget = true;
     return {
-      checkTarget: checkTargetState
+      transition: {...transitionStates}, 
     };
   }
 }
@@ -117,27 +120,36 @@ async function giveTargetHint({ messages }: typeof StateAnnotation.State) {
 
   // 答えに対してヒントを与える
   return {
-    messages: [...messages, new AIMessage("ユーザーは答えを外したのであなたはユーザーを諫め、[ヒント]をあげてください。\n")],
+    messages: [...messages, new AIMessage("答えを外したのであなたはユーザーを諫め、[ヒント]をあげてください。\n")],
   };
 }
 
 /** 1つ目の問題「誰のため」をクリアしたか状態確認ノード */
-async function isTargetCleared({ messages, isTarget }: typeof StateAnnotation.State) {
-  console.log("isTargetCleared: " + isTarget);
+async function isTargetCleared({ messages, transition }: typeof StateAnnotation.State) {
+  console.log("isTargetCleared: " + transition.isTarget);
 
-  isTargetState = true;
+  transitionStates.isTarget = true;
+}
+
+/** 1つ目の問題「誰のため」を正解したことをほめるノード */
+async function praiseTargetCleared({ messages }: typeof StateAnnotation.State) {
+  console.log("praiseTargetCleared");
+
+  return {
+    messages: [...messages, new AIMessage("問題に正解したのであなたはユーザーを褒めてください。\n")],
+  };
 }
 
 /** 2つ目の問題「なぜリーダーのためなのか」は正解したかの状態確認ノード */
-async function checkReasonMatch({ messages, checkReason }: typeof StateAnnotation.State) {
-  console.log("checkReasonMatch: " + checkReason);
+async function checkReasonMatch({ messages, transition, hit }: typeof StateAnnotation.State) {
+  console.log("checkReasonMatch: " + transition.checkReason);
 
   const userMessage = messages[messages.length - 1];
   const userAnswer = typeof userMessage.content === "string"
     ? userMessage.content
     : userMessage.content.map((c: any) => c.text ?? "").join("");
   
-  const targetAnswer = ["納期", "機能", "品質"];
+  const targetAnswer = ["納期や期限を守る", "機能に過不足がない", "品質が良く不具合がない"];
   const targetMetadata = [
     { id: "1", quwstion_id: "2", question: "報連相はなぜリーダーのためなのか"},
     { id: "2", quwstion_id: "2", question: "報連相はなぜリーダーのためなのか"},
@@ -145,26 +157,41 @@ async function checkReasonMatch({ messages, checkReason }: typeof StateAnnotatio
   ];
 
   const vectorStore = await MemoryVectorStore.fromTexts(targetAnswer, targetMetadata, embeddings);
-  const result = await vectorStore.similaritySearchWithScore(userAnswer, 1);
-  const [bestMatch, score] = result[0];
+  const result = await vectorStore.similaritySearchWithScore(userAnswer, 3);
+
+  // 上位３件を確認
+  for(const [bestMatch, score] of result){
     console.log("score: " + score + ", match: "+ bestMatch.pageContent);
 
-  // 正解パターン
-  if (score >= 0.8) {
-    checkReasonState = true;
+    // スコアが閾値以上の場合3つのそれぞれのフラグを上げる
+    if (score >= 0.6){
+      if(bestMatch.pageContent === targetAnswer[0]){
+        reasonFlags.deadline = true;
+      }
+      if(bestMatch.pageContent === targetAnswer[1]){
+        reasonFlags.function = true;
+      }
+      if(bestMatch.pageContent === targetAnswer[2]){
+        reasonFlags.quality = true;
+      }
+      hit = true;
+    }
+  }
+  console.log("納期: " + reasonFlags.deadline);
+  console.log("機能: " + reasonFlags.function);
+  console.log("品質: " + reasonFlags.quality);
+
+  // 全正解
+  if ( Object.values(reasonFlags).every(Boolean) ) {
+    transitionStates.checkReason = true;
     return {
-      checkReason: checkReasonState
+      transition: {...transitionStates}
     };
   }
-}
-
-/** 空のAIMmessageを返すだけのノード */
-async function getEnptyAIMessage({ messages }: typeof StateAnnotation.State) {
-  console.log("AIMessage");
 
   return {
-    messages: [...messages, new AIMessage("")],
-  };
+    hit,
+  }
 }
 
 /** 2つ目の問題「なぜリーダーのためなのか」を聞くノード */
@@ -172,7 +199,7 @@ async function questionReason({ messages }: typeof StateAnnotation.State) {
   console.log("questionReason");
 
   // 問題を出してもらう
-  messages[messages.length -1].content += "報連相はリーダーのためにあります。\n講師として、下記の質問をしてください。\n[報連相はなぜリーダーのためのものなのか]";
+  messages[messages.length -1].content += "上記を実施したのち講師として、[報連相はリーダーのため]ということを前提に下記の質問をしてください。\n[報連相はなぜリーダーのためのものなのか]";
   return {
     messages: [...messages]
   };
@@ -189,19 +216,32 @@ async function giveReasonHint({ messages }: typeof StateAnnotation.State) {
 }
 
 /** 2つ目の問題「なぜリーダーのためなのか」をクリアしたか状態確認ノード */
-async function isReasonCleared({ messages, isReason }: typeof StateAnnotation.State) {
-  console.log("isReasonCleared:" + isReason);
+async function isReasonCleared({ messages, transition }: typeof StateAnnotation.State) {
+  console.log("isReasonCleared:" + transition.isReason);
 
-  isReasonState = true;
+  transitionStates.isReason = true;
+}
+
+/** 2つ目の問題「なぜリーダーのためなのか」を正解したことをほめるノード */
+async function praiseReasonCleared({ messages }: typeof StateAnnotation.State) {
+  console.log("praiseReasonCleared");
+
+  const userMessage = messages[messages.length - 1];
+  const userAnswer = typeof userMessage.content === "string"
+    ? userMessage.content
+    : userMessage.content.map((c: any) => c.text ?? "").join("");
+
+  return {
+    messages: [...messages, new AIMessage(`ユーザーに正解したことを報告してください。\n`)],
+  };
 }
 
 /** なぜ報連相が必要になるのかを解説するノード */
 async function explainNewsletter({ messages }: typeof StateAnnotation.State) {
   console.log("explainNewsletter");
 
-  // 答えに対してヒントを与える
   return {
-    messages: [...messages, new AIMessage("あなたは講師です。なぜ報連相が必要なのか解説してください。また解説の後ユーザーに所感を聞いてください。\n")],
+    messages: [...messages, new AIMessage("あなたは講師です。なぜ報連相が必要なのか解説してください。また解説の後ユーザーにこの講習を終えての所感を聞いてください。\n")],
   };
 }
 
@@ -228,21 +268,31 @@ export const StateAnnotation = Annotation.Root({
     reducer: messagesStateReducer,
     default: () => [],
   }),
-    isStarted: Annotation<boolean>({
-      value: (state: boolean = false, action: boolean) => action,
+  transition: Annotation<States>({
+    value: (state: States = {
+      isStarted: false,
+      isTarget: false,
+      isReason: false,
+      checkTarget: false,
+      checkReason: false,
+    }, action: Partial<States>) => ({
+      ...state,
+      ...action,
     }),
-    isTarget: Annotation<boolean>({
-      value: (state: boolean = false, action: boolean) => action,
+  }),
+  flags: Annotation<Flags>({
+    value: (state: Flags = {
+      deadline: false,
+      function: false,
+      quality: false,
+    }, action: Partial<Flags>) => ({
+      ...state,
+      ...action,
     }),
-    isReason: Annotation<boolean>({
-      value: (state: boolean = false, action: boolean) => action,
-    }),
-    checkTarget: Annotation<boolean>({
-      value: (state: boolean = false, action: boolean) => action,
-    }),
-    checkReason: Annotation<boolean>({
-      value: (state: boolean = false, action: boolean) => action,
-    }),
+  }),
+  hit: Annotation<boolean>({
+    value: (state: boolean = false, action: boolean) => action,
+  }),
 });
 
 const graph = new StateGraph(StateAnnotation)
@@ -254,7 +304,8 @@ const graph = new StateGraph(StateAnnotation)
   .addNode("check1", checkTargetMatch)
   .addNode("check2", checkReasonMatch)
   .addNode("exit", exit)
-  .addNode("aimessage", getEnptyAIMessage)
+  .addNode("praise1", praiseTargetCleared)
+  .addNode("praise2", praiseReasonCleared)
   .addNode("explainStart", explainEngineeringTopics)
   .addNode("explainEnd", explainNewsletter)
   .addNode("question1", questionTarget)
@@ -264,20 +315,25 @@ const graph = new StateGraph(StateAnnotation)
 
   .addEdge("__start__", "set")
   .addConditionalEdges("set", (state) => {
-    if (state.isReason) return "is4";
-    if (state.isTarget) return "is2";
+    if (state.transition.isReason) return "is4";
+    if (state.transition.isTarget) return "is2";
     return "is1";
   })
-  .addConditionalEdges("is1", (state) => state.isStarted ? "check1" : "explainStart")
+  .addConditionalEdges("is1", (state) => state.transition.isStarted ? "check1" : "explainStart")
   .addEdge("explainStart", "question1")
   .addEdge("question1", "exit")
-  .addConditionalEdges("check1", (state) => state.checkTarget ? "is2" : "hint1")
+  .addConditionalEdges("check1", (state) => state.transition.checkTarget ? "is2" : "hint1")
   .addEdge("hint1", "question1")
-  .addConditionalEdges("is2", (state) => state.isTarget ? "check2" : "aimessage")
-  .addEdge("aimessage", "question2")
-  .addEdge("question2", "exit")
-  .addConditionalEdges("check2", (state) => state.checkReason ? "is3" : "hint2")
+  .addConditionalEdges("is2", (state) => state.transition.isTarget ? "check2" : "praise1")
+  .addEdge("praise1", "question2")
+  .addConditionalEdges("check2", (state) => {
+    if (state.transition.checkReason) return "is3";
+    if (state.hit) return "praise2";
+    return "hint2";
+  })
   .addEdge("hint2", "question2")
+  .addEdge("praise2", "question2")
+  .addEdge("question2", "exit")
   .addEdge("is3", "explainEnd")
   .addEdge("explainEnd", "exit")
   .addEdge("is4", "exit")

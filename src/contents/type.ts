@@ -26,3 +26,17 @@ export type RiddleJson = {
     pageContent: string,
     metadata: RiddleMetadata
 };
+
+/** フラグ管理用 */
+export type States ={
+    isStarted: boolean;
+    isTarget: boolean;
+    isReason: boolean;
+    checkTarget: boolean;
+    checkReason: boolean;
+};
+export type Flags ={
+    deadline: boolean;
+    function: boolean;
+    quality: boolean;
+  }
