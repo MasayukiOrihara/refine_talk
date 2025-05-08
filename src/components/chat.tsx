@@ -20,10 +20,10 @@ interface ChatProps {
 export const Chat: React.FC<ChatProps> = ({ model }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
-    //api: 'api/prot1',
+    api: 'api/prot1',
     //api: 'api/prot2/question/graph',
     //api: 'api/prot2',
-    api: 'api/chat',
+    // api: 'api/chat',
     // api: 'api/langchain/rag/web',
     //api: 'api/langchain',
     //api: 'api/chat/with/json',
