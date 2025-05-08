@@ -20,10 +20,9 @@ const formatMessage = (message: VercelChatMessage) => {
 export async function POST(req: Request) {
   try {
     // チャット履歴と選択したモデル
-    const [messages, modelName] = await req.json().then(body => [
-      body.messages ?? [], 
-      body.model ?? 'fake-llm'
-    ]);
+    const body = await req.json();
+    const messages = body.messages ?? [];
+    const modelName = body.model ?? 'fake-llm';
  
     // 過去の履歴 {chat_history}用
     const formattedPreviousMessages = messages
