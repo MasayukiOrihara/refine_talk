@@ -20,7 +20,7 @@ interface ChatProps {
 export const Chat: React.FC<ChatProps> = ({ model }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
-    api: 'api/prot1',
+    // api: 'api/prot1',
     //api: 'api/prot2/question/graph',
     //api: 'api/prot2',
     // api: 'api/chat',
@@ -30,6 +30,7 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
     // api: 'api/langchain/memory',
     // api: 'api/langgraph/',
     //api: 'api/langgraph/reactAgent',
+    api: 'api/oracleSearch',
     body: {
       model,
     },
