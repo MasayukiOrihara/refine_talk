@@ -5,6 +5,8 @@ import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily
 import { RunnableSequence } from '@langchain/core/runnables';
 import { getModel } from '@/contents/utils';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
+import { PromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 
 /**
@@ -21,75 +23,82 @@ export async function POST(req: Request) {
     const messages = body.messages ?? [];
     const modelName = body.model ?? 'fake-llm';
 
-    /**
-     * RAGを試す
-     * tavilyでのweb検索
-     */
-    // Tavilyツールの準備
+    // メッセージ{input}
+    const currentMessageContent = messages[messages.length - 1].content;
+
+    /** 回答取得準備 */
+    const model = getModel(modelName);
+    const outputParser = new StringOutputParser();
+
+    /** 質問文かどうかを判断させる */
+    const desideTemplate = "以下の[発言]が「質問」という意図を含むかを「YES」または「NO」で答えてください。\n[発言]: {input}\n答え: ";
+    const desidePrompt = PromptTemplate.fromTemplate(desideTemplate);
+    const desideChain = desidePrompt.pipe(model).pipe(outputParser);
+
+    const getDeside = await desideChain.invoke({
+      input: currentMessageContent,
+    });
+    // console.log("こたえ: " + getDeside);
+
+    /** ユーザーの質問を推論 */
+    const imageTemplate = "ユーザーの[質問文]の[回答]を推論して一行でまとめてください。\n[質問文]: {input}\n[回答]: ";
+    const imagePrompt = PromptTemplate.fromTemplate(imageTemplate);
+    const imageChain = imagePrompt.pipe(model).pipe(outputParser);
+
+    const getImage = await imageChain.invoke({
+      input: currentMessageContent,
+    });
+    // console.log("推論: " + getImage);
+
+    // 質問だった場合、推論された答えの方をクエリに採用する
+    let query = `${currentMessageContent} site:docs.oracle.com`;
+    if (getDeside === 'YES'){
+      query = `${getImage} site:docs.oracle.com`;
+    }
+    console.log("クエリ: " + query);
+
+
+    /** 文章検索の準備 */
     const tavily = new TavilySearchAPIRetriever({
       apiKey: process.env.TAVILY_API_KEY,
-      k: 5,
+      k: 10,
       includeGeneratedAnswer: true,
     });
 
-    // ドキュメントを分割 & ベクトル化
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 200,
+      chunkSize: 300,
       chunkOverlap: 50,
     });
   
-    // 埋め込みモデル
     const embeddings = new OpenAIEmbeddings({
-      modelName: "text-embedding-3-small",
+      modelName: "text-embedding-3-large",
       apiKey: process.env.OPENAI_API_KEY
     });
-
-    // メッセージ{input}
-    const currentMessageContent = messages[messages.length - 1].content;
-    const query = `${currentMessageContent} site:docs.oracle.com`;
-
-    // モデルの指定
-    const model = getModel(modelName);
         
-    /** chainの基本形式？ */
-    const chain = RunnableSequence.from([
-      async (input: string) => {
-        // 記事の取得
-        const docs = await tavily.invoke(input);
-
-        // 記事の分割
-        const splitDocs = await splitter.splitDocuments(docs);
-        console.log("分割数: " + splitDocs.length);
-
-        const vectorStore = await MemoryVectorStore.fromDocuments(
-              splitDocs,
-              embeddings
-            );
+    /** 検索の実行 */
+    const docs = await tavily.invoke(query);
+    const splitDocs = await splitter.splitDocuments(docs);
+    const vectorStore = await MemoryVectorStore.fromDocuments(
+      splitDocs,
+      embeddings
+    );
+    const response = await vectorStore.similaritySearchWithScore(query, 3);
         
-        // vectore storeからinputで検索
-        const response = await vectorStore.similaritySearchWithScore(input, 2);
-        
-        // 抽出
-        const context = response.map(([doc, score]) => ({
-          content: doc.pageContent,
-          score: score,
-        }));
-        const data = context.map(item => item.content);
-        console.log(response);
+    // 抽出
+    const context = response.map(([doc, score]) => ({
+      content: doc.pageContent,
+      score: score,
+    }));
+    const data = context.map(item => item.content);
+    
+    const outputTemplate = "あなたは情報系の講師です。\n\n情報: {data}\nこれらの情報をもとにユーザーの質問に答えてください。\n\n質問: {input} \n答え: ";
+    const outputPrompt = PromptTemplate.fromTemplate(outputTemplate);
+    const outputChain = outputPrompt.pipe(model).pipe(outputParser);
 
-        return `3行にまとめて回答してください。
-
-          情報: ${data}
-          これらの情報をもとにユーザーに答えてください。
-
-          質問: ${input}
-          `;
-      },
-      (prompt: string) => model.invoke(prompt),
-    ]);
-
-    // ストリーム指定はしてるけど
-    const stream = await chain.stream(query);
+    const stream = await outputChain.stream({
+      data: data,
+      input: query,
+    });
 
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {

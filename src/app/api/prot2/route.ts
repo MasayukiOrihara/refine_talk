@@ -274,7 +274,7 @@ async function isProcessEnd({ messages }: typeof StateAnnotation.State) {
  * グラフ定義
  * messages: 今までのメッセージを保存しているもの
  */
-export const StateAnnotation = Annotation.Root({
+const StateAnnotation = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
     reducer: messagesStateReducer,
     default: () => [],
