@@ -1,8 +1,8 @@
-import { Chat } from "@/components/chat";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { SideMenu } from "@/components/side-menu";
 import { Navi } from "@/components/navi-header";
+import { SubPage } from "@/components/sub-page";
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
         <SideMenu />
         <main className="flex-1 flex flex-col">
           <Navi />
-          <Chat />
+          <SubPage />
           <Footer />
         </main>
       </div>

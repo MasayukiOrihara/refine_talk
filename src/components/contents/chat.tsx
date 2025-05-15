@@ -8,8 +8,8 @@ import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 export const Chat: React.FC = () => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
