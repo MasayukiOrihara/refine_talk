@@ -2,7 +2,7 @@
 
 import { Dog } from 'lucide-react';
 import { Button } from './ui/button';
-import React, { useState } from "react";
+import React from "react";
 
 type Model = 'gpt-4o' | 'claude-haiku' | 'fake-llm';
  
