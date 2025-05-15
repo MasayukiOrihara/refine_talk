@@ -73,7 +73,7 @@ export const Chat: React.FC = () => {
   };
 
   return (
-    <div className="mt-2 flex flex-col w-full max-w-2xl h-full mx-auto gap-2 overflow-hidden">
+    <div className="flex flex-col w-2xl h-full mx-5 gap-2 overflow-hidden">
       <div className="flex flex-col flex-1 overflow-y-auto mb-18">
         {messages.map((message) => (
           <div
