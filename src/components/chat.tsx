@@ -73,7 +73,7 @@ export const Chat: React.FC = () => {
   };
 
   return (
-    <div className="mt-2 flex flex-col w-full max-w-2xl h-full mx-auto gap-2 bg-zinc-900 overflow-hidden">
+    <div className="mt-2 flex flex-col w-full max-w-2xl h-full mx-auto gap-2 overflow-hidden">
       <div className="flex flex-col flex-1 overflow-y-auto mb-18">
         {messages.map((message) => (
           <div
@@ -101,10 +101,7 @@ export const Chat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-2xl p-4 bg-zinc-900"
-      >
+      <form onSubmit={handleSubmit} className="w-full max-w-2xl p-4">
         <div className="flex w-full gap-4">
           <Input
             className="bg-zinc-800 w-full p-2 h-10 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
