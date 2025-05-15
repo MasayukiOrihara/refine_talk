@@ -1,38 +1,38 @@
-'use client';
- 
-import { useChat } from '@ai-sdk/react';
-import { SendHorizontalIcon } from 'lucide-react';
-import Image from 'next/image';
-import { useEffect, useRef } from 'react';
-import { toast } from 'sonner';
+"use client";
 
-import { cn } from '@/lib/utils';
+import { useChat } from "@ai-sdk/react";
+import { SendHorizontalIcon } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { cn } from "@/lib/utils";
 
-type Model = 'gpt-4o' | 'claude-haiku' | 'fake-llm';
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
+type Model = "gpt-4o" | "claude-haiku" | "fake-llm";
 
 interface ChatProps {
   model: Model;
 }
- 
+
 export const Chat: React.FC<ChatProps> = ({ model }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
-    api: 'api/refinetalk',
+    api: "api/refinetalk",
     body: {
       model,
     },
     onError: (e) => {
-      toast.error('エラーが発生しました');
+      toast.error("エラーが発生しました");
       console.log(e);
     },
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
- 
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // 回答が画像だった場合の処理を含む
@@ -50,7 +50,7 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
         <div key={index}>
           <Image
             src={m[2]}
-            alt={m[1] || 'image'}
+            alt={m[1] || "image"}
             width={128}
             height={128}
             className="p-4"
@@ -58,14 +58,14 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
         </div>
       ));
 
-      const nonImageText = value.replace(imageMarkdownLinkRegex, '');
+      const nonImageText = value.replace(imageMarkdownLinkRegex, "");
 
       return (
         <div
           key={`${messageId}-${index}`}
           className="break-words overflow-hidden"
         >
-          <p style={{ overflowWrap: 'anywhere' }}>{nonImageText}</p>
+          <p style={{ overflowWrap: "anywhere" }}>{nonImageText}</p>
           {imageElements}
         </div>
       );
@@ -76,7 +76,7 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
         key={`${messageId}-${index}`}
         className="break-words overflow-hidden"
       >
-        <p style={{ overflowWrap: 'anywhere' }}>{value}</p>
+        <p style={{ overflowWrap: "anywhere" }}>{value}</p>
       </div>
     );
   };
@@ -88,45 +88,45 @@ export const Chat: React.FC<ChatProps> = ({ model }) => {
           <div
             key={message.id}
             className={cn(
-                        'whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2',
-                        message.role === 'user'
-                        ? 'bg-zinc-800 text-neutral-500 self-start'
-                        : 'text-gray-400 self-end',
-                      )}
+              "whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2",
+              message.role === "user"
+                ? "bg-zinc-800 text-neutral-500 self-start"
+                : "text-gray-400 self-end"
+            )}
           >
-            {message.role === 'assistant' && (
+            {message.role === "assistant" && (
               <div className="h-8 px-3 py-2 font-bold text-xs rounded-lg bg-[#ff6467]/20 text-zinc-500 w-auto whitespace-nowrap">
                 回答
               </div>
             )}
             {message.parts.map((part, i) => {
               switch (part.type) {
-              case 'text':
-                return getAnswer(message.id, part.text, i);
+                case "text":
+                  return getAnswer(message.id, part.text, i);
               }
             })}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-  
+
       <form
         onSubmit={handleSubmit}
-        className="fixed bottom-2 w-full max-w-2xl p-4 bg-zinc-900"
+        className="w-full max-w-2xl p-4 bg-zinc-900"
       >
         <div className="flex w-full gap-4">
           <Input
-          className="bg-zinc-800 w-full p-2 h-10 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
-          value={input}
-          placeholder="質問をしてください..."
-          onChange={handleInputChange}
+            className="bg-zinc-800 w-full p-2 h-10 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
+            value={input}
+            placeholder="質問をしてください..."
+            onChange={handleInputChange}
           />
 
           <Button
-          type="submit"
-          className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
+            type="submit"
+            className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
           >
-          <SendHorizontalIcon />
+            <SendHorizontalIcon />
           </Button>
         </div>
       </form>
