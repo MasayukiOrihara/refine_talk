@@ -78,19 +78,35 @@ export const Question: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            <h3 className="text-sm">✅ 状況整理（背景・課題）</h3>
             <ul className="text-sm list-disc list-outside px-10">
               <li className="mb-2">
-                午後2時のミーティングでは発表する予定があり、資料はできているが上司に一度確認してほしい。
+                テストデータの作成が前日に完了せず、本日午前にずれ込んだ
+              </li>
+              <li className="mb-2">原因は「仕様確認に時間を要した」ため</li>
+              <li className="mb-2">
+                テスト工程には入れるが、本日中の完了は難しい可能性がある
+              </li>
+            </ul>
+            <h3 className="text-sm">✅ 遅れの対策</h3>
+            <ul className="text-sm list-disc list-outside px-10">
+              <li className="mb-2">
+                対策①：明日午前のタスクを30分後ろ倒し → テスト時間を確保
               </li>
               <li className="mb-2">
-                前日までの計画では本日中にテスト工程を終わらせる予定だったが、テストデータの作成に手間取り時間がかかってしまい、まだテストデータの作成が終わっていない。
+                対策②：確認待ちが少ないテスト項目から着手 → 作業効率アップ
               </li>
+            </ul>
+            <h3 className="text-sm">✅ 再発防止策</h3>
+            <ul className="text-sm list-disc list-outside px-10">
               <li className="mb-2">
-                テスト工程には入れる見通しだが、本日中にテスト工程は終わらないかもしれない。
+                テストデータ作成時に午前中の進捗確認タイミングを設ける →
+                遅れを早期に察知
               </li>
             </ul>
             <p className="text-sm my-4">
-              上記を踏まえ、本日の予定を報告してください。
+              上記を踏まえ、本日の予定を報告してください。<br></br>
+              また点数が70点未満の場合、再び報告を行い70点以上を目指しましょう。
             </p>
           </div>
         </section>

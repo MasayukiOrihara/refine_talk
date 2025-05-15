@@ -26,52 +26,6 @@ export const Chat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 回答が画像だった場合の処理を含む
-  const getAnswer = (messageId: string, value: string, index: number) => {
-    const imageMarkdownLinkRegex = /!\[([^\]]*)\]\((https?:\/\/[^\)]+)\)/g;
-    const matches = [];
-    let match;
-
-    while ((match = imageMarkdownLinkRegex.exec(value)) !== null) {
-      matches.push(match);
-    }
-
-    if (matches.length > 0) {
-      const imageElements = matches.map((m, index) => (
-        <div key={index}>
-          <Image
-            src={m[2]}
-            alt={m[1] || "image"}
-            width={128}
-            height={128}
-            className="p-4"
-          />
-        </div>
-      ));
-
-      const nonImageText = value.replace(imageMarkdownLinkRegex, "");
-
-      return (
-        <div
-          key={`${messageId}-${index}`}
-          className="break-words overflow-hidden"
-        >
-          <p style={{ overflowWrap: "anywhere" }}>{nonImageText}</p>
-          {imageElements}
-        </div>
-      );
-    }
-
-    return (
-      <div
-        key={`${messageId}-${index}`}
-        className="break-words overflow-hidden"
-      >
-        <p style={{ overflowWrap: "anywhere" }}>{value}</p>
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col w-2xl h-full mx-5 gap-2 overflow-hidden">
       <div className="flex flex-col flex-1 overflow-y-auto mb-18">
@@ -81,7 +35,7 @@ export const Chat: React.FC = () => {
             className={cn(
               "whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2",
               message.role === "user"
-                ? "bg-zinc-800 text-neutral-500 self-start"
+                ? "border text-neutral-500 self-start"
                 : "text-gray-400 self-end"
             )}
           >
@@ -90,12 +44,18 @@ export const Chat: React.FC = () => {
                 回答
               </div>
             )}
-            {message.parts.map((part, i) => {
-              switch (part.type) {
-                case "text":
-                  return getAnswer(message.id, part.text, i);
-              }
-            })}
+            {message.parts.map((part, i) => (
+              <div
+                key={`${message.id}-${i}`}
+                className="break-words overflow-hidden"
+              >
+                {"text" in part ? (
+                  <p className="mt-1" style={{ overflowWrap: "anywhere" }}>
+                    {part.text}
+                  </p>
+                ) : null}
+              </div>
+            ))}
           </div>
         ))}
         <div ref={messagesEndRef} />
@@ -103,16 +63,16 @@ export const Chat: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="w-full max-w-2xl p-4">
         <div className="flex w-full gap-4">
-          <Input
-            className="bg-zinc-800 w-full p-2 h-10 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
+          <textarea
+            className="bg-zinc-800 w-full p-2 h-30 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
             value={input}
-            placeholder="質問をしてください..."
+            placeholder="回答をしてください... [ENTER で 改行]"
             onChange={handleInputChange}
           />
 
           <Button
             type="submit"
-            className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
+            className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40 self-end"
           >
             <SendHorizontalIcon />
           </Button>
