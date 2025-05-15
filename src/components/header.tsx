@@ -1,21 +1,8 @@
-"use client";
-
 import { Dog } from "lucide-react";
 import { Button } from "./ui/button";
 import React from "react";
 
-type Model = "gpt-4o" | "claude-haiku" | "fake-llm";
-
-/** ボタンの設定 */
-interface HeaderProps {
-  selectedModel: Model;
-  onModelChange: (model: Model) => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({
-  selectedModel,
-  onModelChange,
-}) => {
+export const Header: React.FC = () => {
   return (
     <div className="sticky top-0 z-10 p-4 flex items-center justify-center gap-4 bg-zinc-900/90 shadow-md">
       <div className="flex flex-col items-center gap-6">
