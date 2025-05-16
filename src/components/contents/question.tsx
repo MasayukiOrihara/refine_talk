@@ -105,7 +105,7 @@ export const Question: React.FC = () => {
               </li>
             </ul>
             <p className="text-sm my-4">
-              上記を踏まえ、本日の予定を報告してください。<br></br>
+              上記を踏まえ、本日の予定を口頭で報告してください。<br></br>
               また点数が70点未満の場合、再び報告を行い70点以上を目指しましょう。
             </p>
           </div>
