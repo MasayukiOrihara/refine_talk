@@ -1,5 +1,3 @@
-import { Dog } from "lucide-react";
-import { Button } from "./ui/button";
 import React from "react";
 
 export const Header: React.FC = () => {

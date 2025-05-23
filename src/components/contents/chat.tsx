@@ -2,14 +2,11 @@
 
 import { useChat } from "@ai-sdk/react";
 import { SendHorizontalIcon } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 
 export const Chat: React.FC = () => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
