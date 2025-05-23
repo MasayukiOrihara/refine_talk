@@ -12,6 +12,7 @@ const client = new Client({
 
 const model = new ChatAnthropic({
   model: "claude-3-5-haiku-latest",
+  apiKey: process.env.ANTHROPIC_API_KEY,
   tags: ["refinetalk"],
   temperature: 0.3,
 });
