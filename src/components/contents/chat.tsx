@@ -1,8 +1,5 @@
-"use client";
-
 import { useChat } from "@ai-sdk/react";
 import { SendHorizontalIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -17,15 +14,10 @@ export const Chat: React.FC = () => {
       console.log(e);
     },
   });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   return (
     <div className="flex flex-col w-2xl h-full mx-5 gap-2 overflow-hidden">
-      <div className="flex flex-col flex-1 overflow-y-auto mb-18">
+      <div className="flex flex-col overflow-y-auto mb-18">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -55,7 +47,6 @@ export const Chat: React.FC = () => {
             ))}
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSubmit} className="w-full max-w-2xl p-4">

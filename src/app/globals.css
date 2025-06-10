@@ -136,3 +136,35 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.markdown-body h1 {
+  @apply text-2xl font-semibold my-2;
+}
+.markdown-body h2 {
+  @apply text-lg font-semibold py-2 border-b border-zinc-200;
+}
+.markdown-body h3 {
+  @apply text-sm font-semibold mt-4;
+}
+.markdown-body p {
+  @apply text-sm my-2;
+}
+.markdown-body ul {
+  @apply text-sm list-disc list-outside px-10;
+}
+.markdown-body li {
+  @apply mb-2;
+}
+.markdown-body table {
+  @apply border-collapse border-zinc-200 mx-auto py-6;
+}
+.markdown-body th {
+  @apply border-b border-r border-zinc-200 px-4 py-2 text-left;
+}
+.markdown-body td {
+  @apply border-r border-zinc-200 px-4 py-2;
+}
+.markdown-body th:last-child,
+.markdown-body td:last-child {
+  @apply border-r-0;
+}
