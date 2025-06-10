@@ -1,6 +1,7 @@
 import { useChat } from "@ai-sdk/react";
 import { SendHorizontalIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Ellipsis } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -9,7 +10,7 @@ import { Button } from "../ui/button";
 const max = 400;
 
 export const Chat: React.FC = () => {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, input, status, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
     api: "api/refinetalk",
     onError: (e) => {
@@ -52,12 +53,19 @@ export const Chat: React.FC = () => {
         ))}
       </div>
 
+      {status === "submitted" && (
+        <div className="m-auto text-xl text-zinc-500">
+          <Ellipsis className="animate-ping" />
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="w-full max-w-2xl p-4">
         <div className="flex w-full gap-4">
           <textarea
             className="bg-zinc-800 w-full p-2 h-30 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
             value={input}
             placeholder="回答をしてください... [ENTER で 改行]"
+            disabled={status === "submitted"}
             onChange={handleInputChange}
           />
 
@@ -74,7 +82,7 @@ export const Chat: React.FC = () => {
 
             <Button
               type="submit"
-              disabled={input.length > max}
+              disabled={input.length > max || status === "submitted"}
               className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
             >
               <SendHorizontalIcon />
