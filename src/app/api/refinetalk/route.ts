@@ -29,6 +29,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
 
+    console.log("🧠 AI 評価開始...");
+
     // チャット形式
     const formatMessage = (message: VercelChatMessage) => {
       return `${message.role}: ${message.content}`;
@@ -39,6 +41,7 @@ export async function POST(req: Request) {
     //現在の履歴 {input}用
     const currentMessageContent = messages[messages.length - 1].content;
 
+    console.log("📃 プロンプトの取得開始...");
     // langsmithからプロンプトの取得
     const characterTemplate = await client.pullPromptCommit(
       "refine-talk-character"
@@ -60,6 +63,8 @@ export async function POST(req: Request) {
     const firstChain = scorePrompt.pipe(model).pipe(outputParser);
     const secondChain = characterPrompt.pipe(model).pipe(outputParser);
 
+    console.log("1⃣  点数の取得中...");
+
     // 1回目の質問
     const getScore = await firstChain.invoke({
       input: currentMessageContent,
@@ -69,6 +74,8 @@ export async function POST(req: Request) {
     // 文字列の切り出し
     const score = cutKeyword(getScore, "総合点: ");
     const checkPoint = cutKeyword(score, "指摘ポイント: ");
+
+    console.log("2⃣  評価の取得中...");
 
     // 2回目の質問
     const stream = await secondChain.stream({
@@ -81,6 +88,7 @@ export async function POST(req: Request) {
     return LangChainAdapter.toDataStreamResponse(stream);
   } catch (error) {
     if (error instanceof Error) {
+      console.log(error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },

@@ -168,3 +168,7 @@ body {
 .markdown-body td:last-child {
   @apply border-r-0;
 }
+
+.markdown-body hr {
+  @apply my-6;
+}
