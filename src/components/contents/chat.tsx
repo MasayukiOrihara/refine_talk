@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
+// 最大入力文字数
+const max = 400;
+
 export const Chat: React.FC = () => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
@@ -58,12 +61,25 @@ export const Chat: React.FC = () => {
             onChange={handleInputChange}
           />
 
-          <Button
-            type="submit"
-            className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40 self-end"
-          >
-            <SendHorizontalIcon />
-          </Button>
+          <div className="flex flex-col  self-end">
+            <div className="text-sm text-center mb-2 text-neutral-400">
+              <div
+                className={
+                  input.length > max ? "text-red-500" : "text-zinc-500"
+                }
+              >
+                {input.length} / {max}
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={input.length > max}
+              className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
+            >
+              <SendHorizontalIcon />
+            </Button>
+          </div>
         </div>
       </form>
     </div>
