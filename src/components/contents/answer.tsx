@@ -1,9 +1,9 @@
 import { useChat } from "@ai-sdk/react";
-import { on } from "events";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
 type AnswerProps = {
+  page: number;
   onAnswer: boolean;
   setOnAnswer: (v: boolean) => void;
   message: string;
@@ -11,6 +11,7 @@ type AnswerProps = {
 };
 
 export const Answer: React.FC<AnswerProps> = ({
+  page,
   onAnswer,
   setOnAnswer,
   message,
@@ -18,6 +19,9 @@ export const Answer: React.FC<AnswerProps> = ({
 }) => {
   const { messages, append } = useChat({
     api: "api/answer",
+    headers: {
+      page: page.toString(),
+    },
     onError: (e) => {
       toast.error("エラーが発生しました");
       console.log(e);

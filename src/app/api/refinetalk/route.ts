@@ -17,6 +17,15 @@ const model = new ChatAnthropic({
   temperature: 0.3,
 });
 
+const MARKDOWN_NAME = [
+  "q1_morning-meeting.md",
+  "q2_group-info.md",
+  "q3_slide-review.md",
+  "q4_meeting-report.md",
+  "q5_phone-call.md",
+  "q6_email-report.md",
+];
+
 /**
  * RefineTalk API
  * 報告に対するビジネスマナーの指摘
@@ -28,6 +37,7 @@ export async function POST(req: Request) {
     // チャットデータの取得
     const body = await req.json();
     const messages = body.messages ?? [];
+    const page = req.headers.get("page");
 
     console.log("🧠 AI 評価開始...");
 
@@ -40,6 +50,13 @@ export async function POST(req: Request) {
     const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
     //現在の履歴 {input}用
     const currentMessageContent = messages[messages.length - 1].content;
+
+    // page数の取得
+    let markdownPage = Number(page);
+    if (isNaN(markdownPage)) {
+      markdownPage = 0;
+    }
+    console.log("ページ数: " + markdownPage);
 
     console.log("📃 プロンプトの取得開始...");
     // langsmithからプロンプトの取得
@@ -80,6 +97,7 @@ export async function POST(req: Request) {
     // 2回目の質問
     const stream = await secondChain.stream({
       history: formattedPreviousMessages.join("\n"),
+      question: MARKDOWN_NAME[markdownPage],
       input: currentMessageContent,
       score: score,
       prompt1_output: checkPoint,

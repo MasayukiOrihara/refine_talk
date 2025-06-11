@@ -3,10 +3,10 @@ import { SendHorizontalIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Ellipsis } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
 type ChatProps = {
+  page: number;
   setOnAnswer: (v: boolean) => void;
   setMessage: (v: string) => void;
   aiMessage: string;
@@ -16,6 +16,7 @@ type ChatProps = {
 const max = 400;
 
 export const Chat: React.FC<ChatProps> = ({
+  page,
   setOnAnswer,
   setMessage,
   aiMessage,
@@ -23,6 +24,9 @@ export const Chat: React.FC<ChatProps> = ({
   const { messages, input, status, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
     api: "api/refinetalk",
+    headers: {
+      page: page.toString(),
+    },
     onError: (e) => {
       toast.error("エラーが発生しました");
       console.log(e);
@@ -47,7 +51,7 @@ export const Chat: React.FC<ChatProps> = ({
         {assistantMessage && (
           <div
             key={assistantMessage.id}
-            className="whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2 text-gray-400 self-end"
+            className="whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2 text-gray-400"
           >
             <div className="h-8 px-3 py-2 font-bold text-xs rounded-lg bg-[#ff6467]/20 text-zinc-500 w-auto whitespace-nowrap">
               評価

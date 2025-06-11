@@ -5,6 +5,7 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { Client } from "langsmith";
 import path from "path";
 import * as fs from "fs";
+import { headers } from "next/headers";
 
 const client = new Client({
   apiKey: process.env.LANGSMITH_API_KEY,
@@ -17,6 +18,15 @@ const model = new ChatAnthropic({
   temperature: 0.3,
 });
 
+const MARKDOWN_NAME = [
+  "q1_morning-meeting.md",
+  "q2_group-info.md",
+  "q3_slide-review.md",
+  "q4_meeting-report.md",
+  "q5_phone-call.md",
+  "q6_email-report.md",
+];
+
 /**
  * 解答例を取得する
  * @param req
@@ -27,6 +37,7 @@ export async function POST(req: Request) {
     // チャットデータの取得
     const body = await req.json();
     const messages = body.messages ?? [];
+    const page = req.headers.get("page");
 
     console.log("🧠 AI 模範解答作成開始...");
 
@@ -35,11 +46,17 @@ export async function POST(req: Request) {
     console.log(userAnswer);
 
     // 問題文の取得
+    let markdownPage = Number(page);
+    if (isNaN(markdownPage)) {
+      markdownPage = 0;
+    }
+
+    console.log("ページ数: " + markdownPage);
     const markdownPath = path.join(
       process.cwd(),
       "public",
       "markdowns",
-      "q1_morning-meeting.md"
+      MARKDOWN_NAME[markdownPage]
     );
     if (!fs.existsSync(markdownPath)) {
       throw new Error(`ファイルが存在しません: ${markdownPath}`);

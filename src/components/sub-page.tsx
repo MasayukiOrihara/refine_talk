@@ -18,12 +18,14 @@ export const SubPage: React.FC = () => {
       <div className="mt-2 flex flex-col md:flex-row max-w-7xl mx-auto gap-2 overflow-hidden">
         <Markdown page={page} />
         <Answer
+          page={page}
           onAnswer={onAnswer}
           setOnAnswer={setOnAnswer}
           message={message}
           setAiMessage={setAiMessage}
         />
         <Chat
+          page={page}
           setOnAnswer={setOnAnswer}
           setMessage={setMessage}
           aiMessage={aiMessage}
