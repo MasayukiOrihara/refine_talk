@@ -6,10 +6,20 @@ import { Ellipsis } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
+type ChatProps = {
+  setOnAnswer: (v: boolean) => void;
+  setMessage: (v: string) => void;
+  aiMessage: string;
+};
+
 // 最大入力文字数
 const max = 400;
 
-export const Chat: React.FC = () => {
+export const Chat: React.FC<ChatProps> = ({
+  setOnAnswer,
+  setMessage,
+  aiMessage,
+}) => {
   const { messages, input, status, handleInputChange, handleSubmit } = useChat({
     // APIの読み込み
     api: "api/refinetalk",
@@ -19,24 +29,58 @@ export const Chat: React.FC = () => {
     },
   });
 
+  const assistantMessage = [...messages]
+    .reverse()
+    .find((msg) => msg.role === "assistant");
+
+  const userMessages = messages.filter((msg) => msg.role === "user");
+
+  const handleAnswer = () => {
+    setOnAnswer(true);
+    setMessage(messages[messages.length - 2].content);
+  };
+
   return (
     <div className="flex flex-col w-2xl h-full mx-5 gap-2 overflow-hidden">
       <div className="flex flex-col overflow-y-auto mb-18">
-        {messages.map((message) => (
+        {/* アシスタントの最新メッセージ（1件）を上に表示 */}
+        {assistantMessage && (
+          <div
+            key={assistantMessage.id}
+            className="whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2 text-gray-400 self-end"
+          >
+            <div className="h-8 px-3 py-2 font-bold text-xs rounded-lg bg-[#ff6467]/20 text-zinc-500 w-auto whitespace-nowrap">
+              評価
+            </div>
+            {assistantMessage.parts.map((part, i) => (
+              <div
+                key={`${assistantMessage.id}-${i}`}
+                className="break-words overflow-hidden"
+              >
+                {"text" in part ? (
+                  <p className="mt-1" style={{ overflowWrap: "anywhere" }}>
+                    {part.text}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/** 模範解答はここに */}
+        {aiMessage && (
+          <div className="mb-4 p-4 bg-zinc-600 rounded text-sm text-white">
+            <p className="border mb-2 p-1 text-center">模範解答 </p>
+            {aiMessage}
+          </div>
+        )}
+
+        {/* ユーザーメッセージは通常の順序で下に表示 */}
+        {userMessages.map((message) => (
           <div
             key={message.id}
-            className={cn(
-              "whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2",
-              message.role === "user"
-                ? "border text-neutral-500 self-start"
-                : "text-gray-400 self-end"
-            )}
+            className="whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2 border text-neutral-500 self-start"
           >
-            {message.role === "assistant" && (
-              <div className="h-8 px-3 py-2 font-bold text-xs rounded-lg bg-[#ff6467]/20 text-zinc-500 w-auto whitespace-nowrap">
-                回答
-              </div>
-            )}
             {message.parts.map((part, i) => (
               <div
                 key={`${message.id}-${i}`}
@@ -81,6 +125,16 @@ export const Chat: React.FC = () => {
             </div>
 
             <Button
+              title={"模範解答を作成"}
+              onClick={handleAnswer}
+              disabled={status === "submitted" || messages.length < 4}
+              className="w-18 h-8 rounded mb-2 hover:cursor-pointer"
+            >
+              〇
+            </Button>
+
+            <Button
+              title={"送信"}
               type="submit"
               disabled={input.length > max || status === "submitted"}
               className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
