@@ -1,31 +1,11 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatAnthropic } from "@langchain/anthropic";
-import { Client } from "langsmith";
+
 import path from "path";
 import * as fs from "fs";
-import { headers } from "next/headers";
 
-const client = new Client({
-  apiKey: process.env.LANGSMITH_API_KEY,
-});
-
-const model = new ChatAnthropic({
-  model: "claude-3-5-haiku-latest",
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  tags: ["refinetalk"],
-  temperature: 0.3,
-});
-
-const MARKDOWN_NAME = [
-  "q1_morning-meeting.md",
-  "q2_group-info.md",
-  "q3_slide-review.md",
-  "q4_meeting-report.md",
-  "q5_phone-call.md",
-  "q6_email-report.md",
-];
+import { Haike3_5, outputParser } from "@/lib/models";
+import { MARKDOWN_NAME } from "@/lib/constants";
 
 /**
  * 解答例を取得する
@@ -50,8 +30,8 @@ export async function POST(req: Request) {
     if (isNaN(markdownPage)) {
       markdownPage = 0;
     }
-
     console.log("ページ数: " + markdownPage);
+
     const markdownPath = path.join(
       process.cwd(),
       "public",
@@ -67,8 +47,7 @@ export async function POST(req: Request) {
     const template =
       "以下はビジネスマナーに関する問題とそれに対するユーザーの回答です。ユーザーの回答に沿って模範解答を作成してください。出力は模範回答のみ出力してください。\n\n問題: \n{question}\n\nユーザーの回答: \n{user_answer}\n\n模範解答: ";
     const prompt = PromptTemplate.fromTemplate(template);
-    const outputParser = new StringOutputParser();
-    const chain = prompt.pipe(model).pipe(outputParser);
+    const chain = prompt.pipe(Haike3_5).pipe(outputParser);
 
     console.log("📢 模範解答の出力...");
 

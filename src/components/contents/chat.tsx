@@ -4,13 +4,7 @@ import { toast } from "sonner";
 import { Ellipsis } from "lucide-react";
 
 import { Button } from "../ui/button";
-
-type ChatProps = {
-  page: number;
-  setOnAnswer: (v: boolean) => void;
-  setMessage: (v: string) => void;
-  aiMessage: string;
-};
+import { ChatProps } from "@/lib/type";
 
 // 最大入力文字数
 const max = 400;

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Host_Grotesk, Noto_Sans_JP } from 'next/font/google'
-import { Toaster } from '@/components/ui/sonner';
+import { Host_Grotesk, Noto_Sans_JP } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const notoSansJp = Noto_Sans_JP({
-  variable: '--font-noto-sans-jp',
+  variable: "--font-noto-sans-jp",
   subsets: ["latin"],
-  weight: ['400', '500', '700'],
-  display: 'swap',
+  weight: ["400", "500", "700"],
+  display: "swap",
   preload: false,
 });
 
@@ -35,7 +35,7 @@ export default function RootLayout({
         <Toaster
           position="top-center"
           richColors
-          toastOptions={{ className: 'custom-toast' }}
+          toastOptions={{ className: "custom-toast" }}
         />
       </body>
     </html>

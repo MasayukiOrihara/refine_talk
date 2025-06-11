@@ -1,30 +1,8 @@
 import { PromptTemplate } from "@langchain/core/prompts";
-import { Message as VercelChatMessage, LangChainAdapter } from "ai";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatAnthropic } from "@langchain/anthropic";
-import { Client } from "langsmith";
-
-import { cutKeyword } from "@/contents/utils";
-
-const client = new Client({
-  apiKey: process.env.LANGSMITH_API_KEY,
-});
-
-const model = new ChatAnthropic({
-  model: "claude-3-5-haiku-latest",
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  tags: ["refinetalk"],
-  temperature: 0.3,
-});
-
-const MARKDOWN_NAME = [
-  "q1_morning-meeting.md",
-  "q2_group-info.md",
-  "q3_slide-review.md",
-  "q4_meeting-report.md",
-  "q5_phone-call.md",
-  "q6_email-report.md",
-];
+import { LangChainAdapter } from "ai";
+import { client, Haike3_5, outputParser } from "@/lib/models";
+import { MARKDOWN_NAME } from "@/lib/constants";
+import { cutKeyword, formatMessage } from "@/lib/utils";
 
 /**
  * RefineTalk API
@@ -40,11 +18,6 @@ export async function POST(req: Request) {
     const page = req.headers.get("page");
 
     console.log("🧠 AI 評価開始...");
-
-    // チャット形式
-    const formatMessage = (message: VercelChatMessage) => {
-      return `${message.role}: ${message.content}`;
-    };
 
     // 過去の履歴 {chat_history}用
     const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
@@ -73,12 +46,9 @@ export async function POST(req: Request) {
       scoreTemplate.manifest.kwargs.template
     );
 
-    // 出力形式の指定
-    const outputParser = new StringOutputParser();
-
     // プロンプトとモデルをつなぐ
-    const firstChain = scorePrompt.pipe(model).pipe(outputParser);
-    const secondChain = characterPrompt.pipe(model).pipe(outputParser);
+    const firstChain = scorePrompt.pipe(Haike3_5).pipe(outputParser);
+    const secondChain = characterPrompt.pipe(Haike3_5).pipe(outputParser);
 
     console.log("1⃣  点数の取得中...");
 

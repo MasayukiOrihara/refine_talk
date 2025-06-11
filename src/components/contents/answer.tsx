@@ -1,14 +1,7 @@
+import { AnswerProps } from "@/lib/type";
 import { useChat } from "@ai-sdk/react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-
-type AnswerProps = {
-  page: number;
-  onAnswer: boolean;
-  setOnAnswer: (v: boolean) => void;
-  message: string;
-  setAiMessage: (v: string) => void;
-};
 
 export const Answer: React.FC<AnswerProps> = ({
   page,
