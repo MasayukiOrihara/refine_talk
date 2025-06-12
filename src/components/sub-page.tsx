@@ -11,6 +11,7 @@ export const SubPage: React.FC = () => {
   const [onAnswer, setOnAnswer] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [aiMessage, setAiMessage] = useState<string>("");
+  const [answerStatus, setAnswerStatus] = useState<string>("");
 
   return (
     <div className="w-full h-full">
@@ -23,12 +24,14 @@ export const SubPage: React.FC = () => {
           setOnAnswer={setOnAnswer}
           message={message}
           setAiMessage={setAiMessage}
+          setAnswerStatus={setAnswerStatus}
         />
         <Chat
           page={page}
           setOnAnswer={setOnAnswer}
           setMessage={setMessage}
           aiMessage={aiMessage}
+          answerStatus={answerStatus}
         />
       </div>
     </div>

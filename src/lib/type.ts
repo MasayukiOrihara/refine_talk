@@ -5,6 +5,7 @@ export type AnswerProps = {
   setOnAnswer: (v: boolean) => void;
   message: string;
   setAiMessage: (v: string) => void;
+  setAnswerStatus: (v: string) => void;
 };
 
 export type ChatProps = {
@@ -12,4 +13,5 @@ export type ChatProps = {
   setOnAnswer: (v: boolean) => void;
   setMessage: (v: string) => void;
   aiMessage: string;
+  answerStatus: string;
 };

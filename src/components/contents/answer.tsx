@@ -1,3 +1,4 @@
+import { TOAST_ERROR } from "@/lib/constants";
 import { AnswerProps } from "@/lib/type";
 import { useChat } from "@ai-sdk/react";
 import { useEffect } from "react";
@@ -9,18 +10,20 @@ export const Answer: React.FC<AnswerProps> = ({
   setOnAnswer,
   message,
   setAiMessage,
+  setAnswerStatus,
 }) => {
-  const { messages, append } = useChat({
+  const { messages, status, append } = useChat({
     api: "api/answer",
     headers: {
       page: page.toString(),
     },
     onError: (e) => {
-      toast.error("エラーが発生しました");
+      toast.error(TOAST_ERROR);
       console.log(e);
     },
   });
 
+  // 模範解答生成ボタンが押されたら、生成開始する
   useEffect(() => {
     if (!onAnswer) return;
 
@@ -41,6 +44,11 @@ export const Answer: React.FC<AnswerProps> = ({
       }
     }
   }, [messages]);
+
+  // aiの状態を取得
+  useEffect(() => {
+    setAnswerStatus(status);
+  }, [status]);
 
   return null;
 };

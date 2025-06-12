@@ -5,7 +5,8 @@ import path from "path";
 import * as fs from "fs";
 
 import { Haike3_5, outputParser } from "@/lib/models";
-import { MARKDOWN_NAME } from "@/lib/constants";
+import { ANSWER_PROMPT, MARKDOWN_NAME, UNKNOWN_ERROR } from "@/lib/constants";
+import { FILE_NOT_FOUND } from "../../../lib/constants";
 
 /**
  * 解答例を取得する
@@ -39,13 +40,12 @@ export async function POST(req: Request) {
       MARKDOWN_NAME[markdownPage]
     );
     if (!fs.existsSync(markdownPath)) {
-      throw new Error(`ファイルが存在しません: ${markdownPath}`);
+      throw new Error(FILE_NOT_FOUND + markdownPath);
     }
     const content = fs.readFileSync(markdownPath, "utf-8");
 
     console.log("📃 プロンプトの取得開始...");
-    const template =
-      "以下はビジネスマナーに関する問題とそれに対するユーザーの回答です。ユーザーの回答に沿って模範解答を作成してください。出力は模範回答のみ出力してください。\n\n問題: \n{question}\n\nユーザーの回答: \n{user_answer}\n\n模範解答: ";
+    const template = ANSWER_PROMPT;
     const prompt = PromptTemplate.fromTemplate(template);
     const chain = prompt.pipe(Haike3_5).pipe(outputParser);
 
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
+    return new Response(JSON.stringify({ error: UNKNOWN_ERROR }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

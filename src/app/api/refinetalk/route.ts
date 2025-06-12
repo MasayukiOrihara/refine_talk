@@ -1,8 +1,12 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LangChainAdapter } from "ai";
 import { client, Haike3_5, outputParser } from "@/lib/models";
-import { MARKDOWN_NAME } from "@/lib/constants";
+import { MARKDOWN_NAME, UNKNOWN_ERROR } from "@/lib/constants";
 import { cutKeyword, formatMessage } from "@/lib/utils";
+
+/** 定数 */
+const KEYWORD_SCORE = "総合点: ";
+const KEYWORD_POINT = "指摘ポイント: ";
 
 /**
  * RefineTalk API
@@ -33,10 +37,10 @@ export async function POST(req: Request) {
 
     console.log("📃 プロンプトの取得開始...");
     // langsmithからプロンプトの取得
-    const characterTemplate = await client.pullPromptCommit(
-      "refine-talk-character"
-    );
-    const scoreTemplate = await client.pullPromptCommit("refine-talk-scere");
+    const [characterTemplate, scoreTemplate] = await Promise.all([
+      client.pullPromptCommit("refine-talk-character"),
+      client.pullPromptCommit("refine-talk-scere"),
+    ]);
 
     // プロンプトの取得
     const characterPrompt = PromptTemplate.fromTemplate(
@@ -59,8 +63,8 @@ export async function POST(req: Request) {
     console.log("score: " + getScore);
 
     // 文字列の切り出し
-    const score = cutKeyword(getScore, "総合点: ");
-    const checkPoint = cutKeyword(score, "指摘ポイント: ");
+    const score = cutKeyword(getScore, KEYWORD_SCORE);
+    const checkPoint = cutKeyword(score, KEYWORD_POINT);
 
     console.log("2⃣  評価の取得中...");
 
@@ -83,7 +87,7 @@ export async function POST(req: Request) {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown error occurred" }), {
+    return new Response(JSON.stringify({ error: UNKNOWN_ERROR }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
