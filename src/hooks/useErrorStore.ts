@@ -1,22 +1,6 @@
-// useErrorStore.ts
 import { createHash } from "@/lib/hash";
+import { AppError } from "@/lib/type";
 import { create } from "zustand";
-
-type Severity = "error" | "warn" | "info";
-
-export type AppError = {
-  id: string; // ランダムID
-  message: string; // 表示用メッセージ
-  detail?: string; // 追加情報(JSON文字列でも可)
-  name?: string; // Error.name
-  stack?: string; // Error.stack
-  componentStack?: string; // React ErrorInfo.componentStack
-  timestamp: number; // Date.now()
-  severity?: Severity;
-  tags?: string[]; // ["ui", "network", ...]
-  hash?: string; // 重複判定用( message+stack のハッシュ等 )
-  sent?: boolean; // サーバ送信済フラグ
-};
 
 type State = {
   errors: AppError[];

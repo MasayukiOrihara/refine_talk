@@ -1,7 +1,7 @@
-import { supabaseClient } from "@/lib/supabase/clients";
+import { ErrorLogsRepo } from "@/lib/supabase/repositories/errorLogs.repo";
 
 import * as ERR from "@/lib/messages/error";
-import { APP_ERROR_LOGS_TABLE } from "@/lib/supabase/contents/table";
+import * as TYPE from "@/lib/type";
 
 /**
  * エラーログを supabase に集約する API
@@ -15,32 +15,29 @@ export async function POST(req: Request) {
 
     // body 取得失敗
     const body = await req.json();
-    if (!body?.logs || !Array.isArray(body.logs)) {
+    const logs: TYPE.AppError[] = body?.logs;
+    if (!logs || !Array.isArray(logs)) {
       throw new Error(ERR.PAYLOAD_ERROR);
     }
 
-    const rows = body.logs.map((l: any) => ({
-      message: l.message,
-      name: l.name,
-      stack: l.stack,
-      component_stack: l.componentStack,
-      detail: safeToJson(l.detail),
-      severity: l.severity ?? "error",
-      tags: l.tags ?? null,
-      client_ts: new Date(l.timestamp).toISOString(),
-      hash: l.hash ?? null,
+    // todo: sessionidも送る
+    const rows: TYPE.ErrorLogsPayload[] = logs.map((log) => ({
+      id: log.id,
+      message: log.message,
+      name: log.name,
+      stack: log.stack,
+      component_stack: log.componentStack,
+      detail: safeToJson(log.detail),
+      severity: log.severity ?? "error",
+      tags: log.tags ?? null,
+      occurred_at: new Date(log.timestamp).toISOString(),
+      hash: log.hash ?? null,
       user_agent: ua,
       url,
     }));
 
-    const { error } = await supabaseClient()
-      .from(APP_ERROR_LOGS_TABLE)
-      .insert(rows);
-
-    // DB insert 失敗
-    if (error) {
-      throw new Error(`[logs.insert] ${error.message}`, { cause: error });
-    }
+    // DB 更新
+    await ErrorLogsRepo.insert(rows);
 
     return Response.json({ ok: true });
   } catch (error) {
@@ -51,6 +48,11 @@ export async function POST(req: Request) {
   }
 }
 
+/**
+ * オブジェクトを json 型にパースする
+ * @param x
+ * @returns
+ */
 function safeToJson(x: unknown) {
   try {
     return typeof x === "string" ? JSON.parse(x) : x ?? null;
