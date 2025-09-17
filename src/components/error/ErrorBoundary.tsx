@@ -1,5 +1,6 @@
 "use client";
 
+import { useErrorStore } from "@/hooks/useErrorStore";
 import React from "react";
 
 type Props = { children: React.ReactNode };
@@ -22,8 +23,23 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   // エラーログ取得
   componentDidCatch(error: unknown, info: React.ErrorInfo) {
-    // TODO: ログ送信（Sentry など）
+    // 1) 画面には優しく、開発者には詳細を
     console.error("UI Error:", error, info);
+
+    // 2) unknown → Error へ正規化
+    const e = error instanceof Error ? error : new Error(String(error));
+
+    // 3) 状態へ集約（後でバッチ送信）
+    const { push } = useErrorStore.getState();
+    push({
+      message: e.message,
+      detail: JSON.stringify({ info }, null, 2), // componentStackは下で別埋め
+      name: e.name,
+      stack: e.stack,
+      componentStack: info?.componentStack || undefined,
+      severity: "error",
+      tags: ["ui", "error-boundary"],
+    });
   }
 
   render() {

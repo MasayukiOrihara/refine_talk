@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Host_Grotesk, Noto_Sans_JP } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { ErrorFlushAgent } from "@/components/error/ErrorFlushAgent";
 
 const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -28,6 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
+      <ErrorFlushAgent />
       <body
         className={`${notoSansJp.variable} ${host_Grotesk.className} antialiased font-noto-sans-jp`}
       >
