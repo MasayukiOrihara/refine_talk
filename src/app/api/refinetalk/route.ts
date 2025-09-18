@@ -3,9 +3,10 @@ import { toUIMessageStream } from "@ai-sdk/langchain";
 import { createUIMessageStreamResponse } from "ai";
 
 import { client, Haike3_5, outputParser } from "@/lib/models";
-import { MARKDOWN_NAME, UNKNOWN_ERROR } from "@/lib/constants";
+import { MARKDOWN_NAME } from "@/lib/constants";
 import { cutKeyword } from "@/lib/utils";
 import { formatMessage } from "@/lib/llm/message";
+import { UNKNOWN_ERROR } from "@/lib/messages/error";
 
 /** 定数 */
 const KEYWORD_SCORE = "総合点: ";

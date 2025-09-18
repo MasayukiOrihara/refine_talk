@@ -6,8 +6,9 @@ import path from "path";
 import * as fs from "fs";
 
 import { Haike3_5, outputParser } from "@/lib/models";
-import { ANSWER_PROMPT, MARKDOWN_NAME, UNKNOWN_ERROR } from "@/lib/constants";
+import { ANSWER_PROMPT, MARKDOWN_NAME } from "@/lib/constants";
 import { FILE_NOT_FOUND } from "../../../lib/constants";
+import { UNKNOWN_ERROR } from "@/lib/messages/error";
 
 /**
  * 解答例を取得する

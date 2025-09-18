@@ -3,6 +3,10 @@ import { ErrorLogsRepo } from "@/lib/supabase/repositories/errorLogs.repo";
 import * as ERR from "@/lib/messages/error";
 import * as TYPE from "@/lib/type";
 
+export type LOGS_ERROR_RESPONSE = {
+  ok: boolean;
+};
+
 /**
  * エラーログを supabase に集約する API
  * @param req

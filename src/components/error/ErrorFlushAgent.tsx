@@ -1,6 +1,9 @@
 "use client";
 
+import { LOGS_ERROR_RESPONSE } from "@/app/api/logs/error/route";
 import { useErrorStore } from "@/hooks/useErrorStore";
+import { LOGS_ERROR_API } from "@/lib/api/path";
+import { requestApi } from "@/lib/api/request/request";
 import { useEffect } from "react";
 
 /**
@@ -16,11 +19,9 @@ export function ErrorFlushAgent() {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch("/api/logs/error", {
+        const res: LOGS_ERROR_RESPONSE = await requestApi("", LOGS_ERROR_API, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ logs: pending }),
-          keepalive: true, // ページ離脱時も送れる可能性UP
         });
         if (res.ok) {
           useErrorStore.getState().markSent(pending.map((p) => p.id));

@@ -1,5 +1,6 @@
 // エラーメッセージ
 export const UNKNOWN_ERROR = "Unknown error occurred";
+export const HTTP_ERROR = "HTTP error occurred";
 export const PAYLOAD_ERROR = "invalid payload";
 
 // api
