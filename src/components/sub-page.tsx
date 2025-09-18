@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chat } from "./contents/chat";
 import { Markdown } from "./contents/markdown";
 import { Navi } from "./navi-header";
 import { Answer } from "./contents/answer";
+import { useSessionStore } from "@/hooks/useSessionId";
 
 export const SubPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -12,6 +13,13 @@ export const SubPage: React.FC = () => {
   const [message, setMessage] = useState<string>("");
   const [aiMessage, setAiMessage] = useState<string>("");
   const [answerStatus, setAnswerStatus] = useState<string>("");
+
+  const { init } = useSessionStore();
+
+  // ここで session ID を初期化
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
     <div className="w-full h-full">

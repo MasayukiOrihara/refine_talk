@@ -1,10 +1,16 @@
+import { errStore } from "@/hooks/useErrorStore";
+import { useSessionStore } from "@/hooks/useSessionId";
 import { MARKDOWN_READ_API } from "@/lib/api/path";
 import { requestApi } from "@/lib/api/request/request";
 import { MARKDOWN_NAME } from "@/lib/constants";
+
 import { MarkdownInfo } from "@/lib/schema";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
+
+import * as ERR from "@/lib/messages/error";
 
 export const Markdown: React.FC<{ page: number }> = ({ page }) => {
   const [content, setContent] = useState("");
@@ -14,18 +20,30 @@ export const Markdown: React.FC<{ page: number }> = ({ page }) => {
     console.log("ページ番号: " + page);
 
     const file = MARKDOWN_NAME[page];
-    const dir = "public/markdowns/question/";
+    const dir = "public/markdowns/question/it";
     const mdInfo: MarkdownInfo = { file, dir };
-    try {
-      (async () => {
+
+    (async () => {
+      try {
         const res: string = await requestApi("", MARKDOWN_READ_API, {
           method: "POST",
           body: { mdInfo },
         });
-
         setContent(res);
-      })();
-    } catch (error) {}
+      } catch (err) {
+        // MD 取得失敗
+        const { sessionId } = useSessionStore.getState();
+        const tags = ["frontend", "markdown"];
+
+        toast.error(ERR.FILE_READ_ERROR_TOAST);
+        errStore({
+          message: ERR.MD_READ_ERROR,
+          sessionId,
+          err,
+          tags,
+        });
+      }
+    })();
   }, [page]);
 
   return (

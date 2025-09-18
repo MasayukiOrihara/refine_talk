@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : ERR.UNKNOWN_ERROR;
 
-    console.error(`${ERR.MARKDOWN_READ_ERROR}: ${message}`);
+    console.error(`${ERR.MD_READ_ERROR}: ${message}`);
     return Response.json({ error: message }, { status: 500 });
   }
 }
