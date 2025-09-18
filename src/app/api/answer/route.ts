@@ -5,7 +5,7 @@ import { createUIMessageStreamResponse } from "ai";
 import path from "path";
 import * as fs from "fs";
 
-import { Haike3_5, outputParser } from "@/lib/models";
+import { Haike3_5, outputParser } from "@/lib/llm/models";
 import { ANSWER_PROMPT, MARKDOWN_NAME } from "@/lib/constants";
 import { FILE_NOT_FOUND } from "../../../lib/constants";
 import { UNKNOWN_ERROR } from "@/lib/messages/error";

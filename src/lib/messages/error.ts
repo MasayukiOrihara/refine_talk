@@ -14,5 +14,8 @@ export const MD_READ_ERROR = "markdown read API POST error";
 export const SUPABASE_KEY_ERROR = "Expected SUPABASE_SERVICE_ROLE_KEY";
 export const SUPABASE_URL_ERROR = "Expected env var SUPABASE_URL";
 
+// llm
+export const ALL_FALLBACK_ERROR = "All fallback models failed.";
+
 // toast
 export const FILE_READ_ERROR_TOAST = "ファイルの読み込みに失敗しました。";

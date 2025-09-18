@@ -14,6 +14,8 @@ export const client = new Client({
 export const Haike3_5 = new ChatAnthropic({
   model: "claude-3-5-haiku-latest",
   apiKey: process.env.ANTHROPIC_API_KEY,
-  tags: ["refinetalk"],
   temperature: 0.3,
+  streaming: true,
+  streamUsage: true,
+  tags: ["refinetalk"],
 });

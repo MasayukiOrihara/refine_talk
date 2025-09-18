@@ -2,11 +2,13 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { toUIMessageStream } from "@ai-sdk/langchain";
 import { createUIMessageStreamResponse } from "ai";
 
-import { client, Haike3_5, outputParser } from "@/lib/models";
+import { client, Haike3_5, outputParser } from "@/lib/llm/models";
 import { MARKDOWN_NAME } from "@/lib/constants";
 import { cutKeyword } from "@/lib/utils";
 import { formatMessage } from "@/lib/llm/message";
 import { UNKNOWN_ERROR } from "@/lib/messages/error";
+import { useSessionStore } from "@/hooks/useSessionId";
+import { runWithFallback } from "@/lib/llm/run/fallback";
 
 /** 定数 */
 const KEYWORD_SCORE = "総合点: ";
@@ -24,6 +26,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const messages = body.messages ?? [];
     const page = req.headers.get("page");
+
+    // session id
+    const sessionId = body.sessionId;
+    console.log(sessionId);
 
     console.log("🧠 AI 評価開始...");
 
@@ -73,16 +79,29 @@ export async function POST(req: Request) {
     console.log("2⃣  評価の取得中...");
 
     // 2回目の質問
-    const stream = await secondChain.stream({
+    // const stream = await secondChain.stream({
+    //   history: formattedPreviousMessages.join("\n"),
+    //   question: MARKDOWN_NAME[markdownPage],
+    //   input: currentMessageContent,
+    //   score: score,
+    //   prompt1_output: checkPoint,
+    // });
+    const promptVariables = {
       history: formattedPreviousMessages.join("\n"),
       question: MARKDOWN_NAME[markdownPage],
       input: currentMessageContent,
       score: score,
       prompt1_output: checkPoint,
-    });
+    };
+
+    const lcStream = (await runWithFallback(characterPrompt, promptVariables, {
+      mode: "stream",
+      label: "refine talk stream",
+      sessionId: sessionId,
+    })) as ReadableStream<string>;
 
     const response = createUIMessageStreamResponse({
-      stream: toUIMessageStream(stream),
+      stream: toUIMessageStream(lcStream),
     });
 
     return response;

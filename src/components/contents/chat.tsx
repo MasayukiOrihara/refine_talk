@@ -9,6 +9,7 @@ import { TOAST_ERROR } from "@/lib/constants";
 import { DefaultChatTransport } from "ai";
 import { useState } from "react";
 import { messageText } from "@/lib/llm/message";
+import { useSessionStore } from "@/hooks/useSessionId";
 
 // 最大入力文字数
 const max = 400;
@@ -21,6 +22,7 @@ export const Chat: React.FC<ChatProps> = ({
   answerStatus,
 }) => {
   const [input, setInput] = useState("");
+  const { sessionId } = useSessionStore();
   const { messages, status, sendMessage } = useChat({
     transport: new DefaultChatTransport({
       // APIの読み込み
@@ -53,7 +55,10 @@ export const Chat: React.FC<ChatProps> = ({
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    sendMessage({ text: input });
+    sendMessage(
+      { role: "user", parts: [{ type: "text", text: input }] },
+      { body: { sessionId: sessionId } }
+    );
     setInput("");
   };
 
