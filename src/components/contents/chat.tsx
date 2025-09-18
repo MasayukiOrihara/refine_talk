@@ -28,9 +28,6 @@ export const Chat: React.FC<ChatProps> = ({
       // APIの読み込み
       api: "/api/refinetalk",
       credentials: "include",
-      headers: {
-        page: page.toString(),
-      },
     }),
     onError: (e) => {
       toast.error(TOAST_ERROR);
@@ -57,7 +54,7 @@ export const Chat: React.FC<ChatProps> = ({
     e.preventDefault();
     sendMessage(
       { role: "user", parts: [{ type: "text", text: input }] },
-      { body: { sessionId: sessionId } }
+      { body: { sessionId: sessionId, page: page } }
     );
     setInput("");
   };

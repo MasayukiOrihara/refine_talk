@@ -1,14 +1,14 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { toUIMessageStream } from "@ai-sdk/langchain";
-import { createUIMessageStreamResponse } from "ai";
+import { createUIMessageStreamResponse, UIMessage } from "ai";
 
 import { client, Haike3_5, outputParser } from "@/lib/llm/models";
 import { MARKDOWN_NAME } from "@/lib/constants";
 import { cutKeyword } from "@/lib/utils";
-import { formatMessage } from "@/lib/llm/message";
-import { UNKNOWN_ERROR } from "@/lib/messages/error";
-import { useSessionStore } from "@/hooks/useSessionId";
+import { formatMessage, messageText } from "@/lib/llm/message";
 import { runWithFallback } from "@/lib/llm/run/fallback";
+
+import * as ERR from "@/lib/messages/error";
 
 /** 定数 */
 const KEYWORD_SCORE = "総合点: ";
@@ -24,79 +24,68 @@ export async function POST(req: Request) {
   try {
     // チャットデータの取得
     const body = await req.json();
-    const messages = body.messages ?? [];
-    const page = req.headers.get("page");
+    // フロントから今までのメッセージを取得
+    const messages: UIMessage[] = body.messages ?? [];
+    // ページ数とsession idの取得
+    const page: number = body?.page;
+    const sessionId: string = body?.sessionId;
+    if (typeof page !== "number" || !sessionId) {
+      throw new Error(`${ERR.VALUE_ERROR}: page or session id`);
+    }
 
-    // session id
-    const sessionId = body.sessionId;
-    console.log(sessionId);
-
-    console.log("🧠 AI 評価開始...");
+    console.log("🧠 refine talk api...");
 
     // 過去の履歴 {chat_history}用
     const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
     //現在の履歴 {input}用
-    const currentMessageContent = messages[messages.length - 1].content;
+    const currentMessage = messages[messages.length - 1];
+    const input = messageText(currentMessage);
 
-    // page数の取得
-    let markdownPage = Number(page);
-    if (isNaN(markdownPage)) {
-      markdownPage = 0;
-    }
-    console.log("ページ数: " + markdownPage);
-
-    console.log("📃 プロンプトの取得開始...");
     // langsmithからプロンプトの取得
+    // todo: ローカル取得に変更（プロンプトの取り扱いに関してはまた後日）
     const [characterTemplate, scoreTemplate] = await Promise.all([
       client.pullPromptCommit("refine-talk-character"),
       client.pullPromptCommit("refine-talk-scere"),
     ]);
 
+    console.log("1⃣  点数の取得中...");
+    // プロンプトの取得
+    const scorePrompt = PromptTemplate.fromTemplate(
+      scoreTemplate.manifest.kwargs.template
+    );
+    const scorePromptVariables = {
+      input: input,
+    };
+    // LLM 応答
+    const scoreRes = (await runWithFallback(scorePrompt, scorePromptVariables, {
+      mode: "invoke",
+      parser: outputParser,
+      label: "refine talk 1 invoke",
+      sessionId: sessionId,
+    })) as string;
+
+    console.log("score: " + scoreRes);
+
+    // 文字列の切り出し
+    const score = cutKeyword(scoreRes, KEYWORD_SCORE);
+    const checkPoint = cutKeyword(score, KEYWORD_POINT);
+
+    console.log("2⃣  評価の取得中...");
     // プロンプトの取得
     const characterPrompt = PromptTemplate.fromTemplate(
       characterTemplate.manifest.kwargs.template
     );
-    const scorePrompt = PromptTemplate.fromTemplate(
-      scoreTemplate.manifest.kwargs.template
-    );
-
-    // プロンプトとモデルをつなぐ
-    const firstChain = scorePrompt.pipe(Haike3_5).pipe(outputParser);
-    const secondChain = characterPrompt.pipe(Haike3_5).pipe(outputParser);
-
-    console.log("1⃣  点数の取得中...");
-
-    // 1回目の質問
-    const getScore = await firstChain.invoke({
-      input: currentMessageContent,
-    });
-    console.log("score: " + getScore);
-
-    // 文字列の切り出し
-    const score = cutKeyword(getScore, KEYWORD_SCORE);
-    const checkPoint = cutKeyword(score, KEYWORD_POINT);
-
-    console.log("2⃣  評価の取得中...");
-
-    // 2回目の質問
-    // const stream = await secondChain.stream({
-    //   history: formattedPreviousMessages.join("\n"),
-    //   question: MARKDOWN_NAME[markdownPage],
-    //   input: currentMessageContent,
-    //   score: score,
-    //   prompt1_output: checkPoint,
-    // });
     const promptVariables = {
       history: formattedPreviousMessages.join("\n"),
-      question: MARKDOWN_NAME[markdownPage],
-      input: currentMessageContent,
+      question: MARKDOWN_NAME[page],
+      input: input,
       score: score,
       prompt1_output: checkPoint,
     };
-
+    // LLM 応答
     const lcStream = (await runWithFallback(characterPrompt, promptVariables, {
       mode: "stream",
-      label: "refine talk stream",
+      label: "refine talk 2 stream",
       sessionId: sessionId,
     })) as ReadableStream<string>;
 
@@ -106,17 +95,9 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    if (error instanceof Error) {
-      console.log(error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const message = error instanceof Error ? error.message : ERR.UNKNOWN_ERROR;
 
-    return new Response(JSON.stringify({ error: UNKNOWN_ERROR }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error(`${ERR.REFINE_TALK_ERROR}: ${message}`);
+    return Response.json({ error: message }, { status: 500 });
   }
 }
