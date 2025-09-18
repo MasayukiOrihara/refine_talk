@@ -10,6 +10,7 @@ import { DefaultChatTransport } from "ai";
 import { useState } from "react";
 import { messageText } from "@/lib/llm/message";
 import { useSessionStore } from "@/hooks/useSessionId";
+import { useRefineTalkChat } from "@/hooks/useRefineChat";
 
 // 最大入力文字数
 const max = 400;
@@ -23,17 +24,13 @@ export const Chat: React.FC<ChatProps> = ({
 }) => {
   const [input, setInput] = useState("");
   const { sessionId } = useSessionStore();
-  const { messages, status, sendMessage } = useChat({
-    transport: new DefaultChatTransport({
-      // APIの読み込み
-      api: "/api/refinetalk",
-      credentials: "include",
-    }),
-    onError: (e) => {
-      toast.error(TOAST_ERROR);
-      console.log(e);
-    },
-  });
+
+  const REFINETALK_API = "/api/refinetalk";
+
+  const { messages, status, sendMessage } = useRefineTalkChat(
+    REFINETALK_API,
+    sessionId
+  );
 
   // assistantメッセージ取得
   const assistantMessage = [...messages]

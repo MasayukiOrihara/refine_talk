@@ -63,11 +63,22 @@ export function errStore(payload: ErrStorePayload) {
   // 2) unknown → Error へ正規化
   const e = err instanceof Error ? err : new Error(String(err));
 
+  // messageに html 入った時の回避(message は上限2000文字のため超えるとバグる)
+  const RESIZEOBSERVER_MESSAGE =
+    "<title>404: This page could not be found.</title>";
+  let errorMessage = e.message;
+  if (
+    typeof errorMessage === "string" &&
+    errorMessage.includes(RESIZEOBSERVER_MESSAGE)
+  ) {
+    errorMessage = RESIZEOBSERVER_MESSAGE;
+  }
+
   // 3) 状態へ集約（後でバッチ送信）
   const { push } = useErrorStore.getState();
   push({
     sessionId: sessionId,
-    message: e.message,
+    message: errorMessage,
     detail: JSON.stringify({ info }, null, 2), // componentStackは下で別埋め
     name: e.name,
     stack: e.stack,

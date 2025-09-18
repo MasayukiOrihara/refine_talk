@@ -2,7 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { toUIMessageStream } from "@ai-sdk/langchain";
 import { createUIMessageStreamResponse, UIMessage } from "ai";
 
-import { client, Haike3_5, outputParser } from "@/lib/llm/models";
+import { client, outputParser } from "@/lib/llm/models";
 import { MARKDOWN_NAME } from "@/lib/constants";
 import { cutKeyword } from "@/lib/utils";
 import { formatMessage, messageText } from "@/lib/llm/message";
