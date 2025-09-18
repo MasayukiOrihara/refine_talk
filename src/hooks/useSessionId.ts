@@ -1,20 +1,18 @@
-import { useState, useEffect } from "react";
+import { create } from "zustand";
 
-/**
- * ブラウザ側でセッションID を管理するためのフック
- * @returns
- */
-export function useSessionId() {
-  const [sessionId, setSessionId] = useState<string | null>(null);
+type SessionState = {
+  sessionId: string | undefined;
+  init: () => void;
+};
 
-  useEffect(() => {
+export const useSessionStore = create<SessionState>((set) => ({
+  sessionId: undefined,
+  init: () => {
     let id = sessionStorage.getItem("session_id");
     if (!id) {
       id = crypto.randomUUID();
       sessionStorage.setItem("session_id", id);
     }
-    setSessionId(id);
-  }, []);
-
-  return sessionId;
-}
+    set({ sessionId: id });
+  },
+}));

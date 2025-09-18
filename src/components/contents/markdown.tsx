@@ -14,17 +14,18 @@ export const Markdown: React.FC<{ page: number }> = ({ page }) => {
     console.log("ページ番号: " + page);
 
     const file = MARKDOWN_NAME[page];
-    const dir = "public/markdowns/question/it";
+    const dir = "public/markdowns/question/";
     const mdInfo: MarkdownInfo = { file, dir };
+    try {
+      (async () => {
+        const res: string = await requestApi("", MARKDOWN_READ_API, {
+          method: "POST",
+          body: { mdInfo },
+        });
 
-    (async () => {
-      const res: string = await requestApi("", MARKDOWN_READ_API, {
-        method: "POST",
-        body: { mdInfo },
-      });
-
-      setContent(res);
-    })();
+        setContent(res);
+      })();
+    } catch (error) {}
   }, [page]);
 
   return (

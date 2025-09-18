@@ -1,7 +1,10 @@
 "use client";
 
-import { useErrorStore } from "@/hooks/useErrorStore";
 import React from "react";
+
+import { errStore } from "@/hooks/useErrorStore";
+import { useSessionStore } from "@/hooks/useSessionId";
+import * as ERR from "@/lib/messages/error";
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; message?: string };
@@ -23,23 +26,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   // エラーログ取得
   componentDidCatch(error: unknown, info: React.ErrorInfo) {
-    // 1) 画面には優しく、開発者には詳細を
-    console.error("UI Error:", error, info);
+    const { sessionId } = useSessionStore.getState();
+    const tags = ["ui", "error-boundary"];
 
-    // 2) unknown → Error へ正規化
-    const e = error instanceof Error ? error : new Error(String(error));
-
-    // 3) 状態へ集約（後でバッチ送信）
-    const { push } = useErrorStore.getState();
-    push({
-      message: e.message,
-      detail: JSON.stringify({ info }, null, 2), // componentStackは下で別埋め
-      name: e.name,
-      stack: e.stack,
-      componentStack: info?.componentStack || undefined,
-      severity: "error",
-      tags: ["ui", "error-boundary"],
-    });
+    errStore({ message: ERR.UI_ERROR, sessionId, err: error, info, tags });
   }
 
   render() {

@@ -10,6 +10,15 @@ type State = {
   remove: (id: string) => void;
 };
 
+// 型を定義（必要に応じて拡張）
+type ErrStorePayload = {
+  message: string;
+  sessionId?: string;
+  err: unknown;
+  info?: React.ErrorInfo;
+  tags?: string[];
+};
+
 /**
  * エラーを集約する関数
  */
@@ -37,3 +46,33 @@ export const useErrorStore = create<State>((set, get) => ({
   clear: () => set({ errors: [] }),
   remove: (id) => set((s) => ({ errors: s.errors.filter((x) => x.id !== id) })),
 }));
+
+/**
+ * エラーが出た時積む共通関数
+ * @param message
+ * @param err
+ * @param sessionId
+ * @param info
+ * @param tags
+ */
+export function errStore(payload: ErrStorePayload) {
+  const { message, err, sessionId, info, tags } = payload;
+  // 1) 画面には優しく、開発者には詳細を
+  console.error(message, err, info);
+
+  // 2) unknown → Error へ正規化
+  const e = err instanceof Error ? err : new Error(String(err));
+
+  // 3) 状態へ集約（後でバッチ送信）
+  const { push } = useErrorStore.getState();
+  push({
+    sessionId: sessionId,
+    message: e.message,
+    detail: JSON.stringify({ info }, null, 2), // componentStackは下で別埋め
+    name: e.name,
+    stack: e.stack,
+    componentStack: info?.componentStack || undefined,
+    severity: "error",
+    tags: tags,
+  });
+}

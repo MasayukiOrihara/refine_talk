@@ -3,6 +3,9 @@ export const UNKNOWN_ERROR = "Unknown error occurred";
 export const HTTP_ERROR = "HTTP error occurred";
 export const PAYLOAD_ERROR = "invalid payload";
 
+// error
+export const UI_ERROR = "UI Error ";
+
 // api
 export const API_LOGS_ERROR = "error logs API POST error";
 export const MARKDOWN_READ_ERROR = "markdown read API POST error";
