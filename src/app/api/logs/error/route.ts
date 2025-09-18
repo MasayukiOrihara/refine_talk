@@ -2,6 +2,7 @@ import { ErrorLogsRepo } from "@/lib/supabase/repositories/errorLogs.repo";
 
 import * as ERR from "@/lib/messages/error";
 import * as TYPE from "@/lib/type";
+import { ErrorLogsPayloadSchema } from "@/lib/schema";
 
 export type LOGS_ERROR_RESPONSE = {
   ok: boolean;
@@ -17,12 +18,13 @@ export async function POST(req: Request) {
     const ua = req.headers.get("user-agent") ?? "";
     const url = req.headers.get("referer") ?? "";
 
-    // body 取得失敗
+    // body 取得
     const body = await req.json();
-    const logs: TYPE.AppError[] = body?.logs;
-    if (!logs || !Array.isArray(logs)) {
-      throw new Error(ERR.PAYLOAD_ERROR);
+    const parsed = ErrorLogsPayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new Error(`${ERR.PAYLOAD_ERROR} logs`);
     }
+    const { logs } = parsed.data;
 
     // todo: sessionidも送る
     const rows: TYPE.ErrorLogsPayload[] = logs.map((log) => ({

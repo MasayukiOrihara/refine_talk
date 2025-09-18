@@ -1,10 +1,10 @@
 import { createHash } from "@/lib/hash";
-import { AppError } from "@/lib/type";
+import { AppErrorDTO } from "@/lib/schema";
 import { create } from "zustand";
 
 type State = {
-  errors: AppError[];
-  push: (e: Omit<AppError, "id" | "timestamp" | "hash" | "sent">) => void;
+  errors: AppErrorDTO[];
+  push: (e: Omit<AppErrorDTO, "id" | "timestamp" | "hash" | "sent">) => void;
   markSent: (ids: string[]) => void;
   clear: () => void;
   remove: (id: string) => void;

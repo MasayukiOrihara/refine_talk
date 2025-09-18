@@ -5,6 +5,7 @@ export const PAYLOAD_ERROR = "invalid payload";
 
 // api
 export const API_LOGS_ERROR = "error logs API POST error";
+export const MARKDOWN_READ_ERROR = "markdown read API POST error";
 
 // supabase
 export const SUPABASE_KEY_ERROR = "Expected SUPABASE_SERVICE_ROLE_KEY";

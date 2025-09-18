@@ -1,4 +1,7 @@
+import { MARKDOWN_READ_API } from "@/lib/api/path";
+import { requestApi } from "@/lib/api/request/request";
 import { MARKDOWN_NAME } from "@/lib/constants";
+import { MarkdownInfo } from "@/lib/schema";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -6,12 +9,22 @@ import remarkGfm from "remark-gfm";
 export const Markdown: React.FC<{ page: number }> = ({ page }) => {
   const [content, setContent] = useState("");
 
+  // MD ファイルを読み込む API を叩いて取得
   useEffect(() => {
     console.log("ページ番号: " + page);
-    const filePath = "/markdowns/" + MARKDOWN_NAME[page];
-    fetch(filePath)
-      .then((res) => res.text())
-      .then(setContent);
+
+    const file = MARKDOWN_NAME[page];
+    const dir = "public/markdowns/question/it";
+    const mdInfo: MarkdownInfo = { file, dir };
+
+    (async () => {
+      const res: string = await requestApi("", MARKDOWN_READ_API, {
+        method: "POST",
+        body: { mdInfo },
+      });
+
+      setContent(res);
+    })();
   }, [page]);
 
   return (

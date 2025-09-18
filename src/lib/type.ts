@@ -46,24 +46,3 @@ export type ErrorLogsPayload = {
   url?: string | null;
   hash?: string | null;
 };
-
-/**
- * エラーログ 関連の型
- */
-type Severity = "error" | "warn" | "info";
-
-/** エラーログをストアに保存するときの型 */
-export type AppError = {
-  id: string; // ランダムID
-  sessionId?: string; // セッションID
-  message: string; // 表示用メッセージ
-  detail?: string; // 追加情報(JSON文字列でも可)
-  name?: string; // Error.name
-  stack?: string; // Error.stack
-  componentStack?: string; // React ErrorInfo.componentStack
-  timestamp: number; // Date.now()
-  severity?: Severity;
-  tags?: string[]; // ["ui", "network", ...]
-  hash?: string; // 重複判定用( message+stack のハッシュ等 )
-  sent?: boolean; // サーバ送信済フラグ
-};
