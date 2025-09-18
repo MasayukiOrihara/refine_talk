@@ -1,6 +1,8 @@
 import { TOAST_ERROR } from "@/lib/constants";
+import { messageText } from "@/lib/llm/message";
 import { AnswerProps } from "@/lib/type";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -12,11 +14,15 @@ export const Answer: React.FC<AnswerProps> = ({
   setAiMessage,
   setAnswerStatus,
 }) => {
-  const { messages, status, append } = useChat({
-    api: "api/answer",
-    headers: {
-      page: page.toString(),
-    },
+  const { messages, status, sendMessage } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/answer",
+      credentials: "include",
+      headers: {
+        page: page.toString(),
+      },
+    }),
+
     onError: (e) => {
       toast.error(TOAST_ERROR);
       console.log(e);
@@ -28,7 +34,7 @@ export const Answer: React.FC<AnswerProps> = ({
     if (!onAnswer) return;
 
     console.log(message);
-    append({ role: "user", content: message });
+    sendMessage({ role: "user", parts: [{ type: "text", text: message }] });
 
     setOnAnswer(false);
   }, [onAnswer]);
@@ -40,7 +46,7 @@ export const Answer: React.FC<AnswerProps> = ({
 
       // 最後のメッセージがAIからのものかチェック
       if (lastMessage.role === "assistant") {
-        setAiMessage(lastMessage.content);
+        setAiMessage(messageText(lastMessage));
       }
     }
   }, [messages]);

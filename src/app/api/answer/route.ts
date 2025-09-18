@@ -1,5 +1,6 @@
 import { PromptTemplate } from "@langchain/core/prompts";
-import { LangChainAdapter } from "ai";
+import { toUIMessageStream } from "@ai-sdk/langchain";
+import { createUIMessageStreamResponse } from "ai";
 
 import path from "path";
 import * as fs from "fs";
@@ -57,7 +58,11 @@ export async function POST(req: Request) {
       user_answer: userAnswer,
     });
 
-    return LangChainAdapter.toDataStreamResponse(result);
+    const response = createUIMessageStreamResponse({
+      stream: toUIMessageStream(result),
+    });
+
+    return response;
   } catch (error) {
     if (error instanceof Error) {
       console.log(error);

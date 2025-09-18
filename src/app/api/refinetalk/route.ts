@@ -1,8 +1,11 @@
 import { PromptTemplate } from "@langchain/core/prompts";
-import { LangChainAdapter } from "ai";
+import { toUIMessageStream } from "@ai-sdk/langchain";
+import { createUIMessageStreamResponse } from "ai";
+
 import { client, Haike3_5, outputParser } from "@/lib/models";
 import { MARKDOWN_NAME, UNKNOWN_ERROR } from "@/lib/constants";
-import { cutKeyword, formatMessage } from "@/lib/utils";
+import { cutKeyword } from "@/lib/utils";
+import { formatMessage } from "@/lib/llm/message";
 
 /** 定数 */
 const KEYWORD_SCORE = "総合点: ";
@@ -77,7 +80,11 @@ export async function POST(req: Request) {
       prompt1_output: checkPoint,
     });
 
-    return LangChainAdapter.toDataStreamResponse(stream);
+    const response = createUIMessageStreamResponse({
+      stream: toUIMessageStream(stream),
+    });
+
+    return response;
   } catch (error) {
     if (error instanceof Error) {
       console.log(error);

@@ -6,6 +6,9 @@ import { Ellipsis } from "lucide-react";
 import { Button } from "../ui/button";
 import { ChatProps } from "@/lib/type";
 import { TOAST_ERROR } from "@/lib/constants";
+import { DefaultChatTransport } from "ai";
+import { useState } from "react";
+import { messageText } from "@/lib/llm/message";
 
 // 最大入力文字数
 const max = 400;
@@ -17,12 +20,16 @@ export const Chat: React.FC<ChatProps> = ({
   aiMessage,
   answerStatus,
 }) => {
-  const { messages, input, status, handleInputChange, handleSubmit } = useChat({
-    // APIの読み込み
-    api: "api/refinetalk",
-    headers: {
-      page: page.toString(),
-    },
+  const [input, setInput] = useState("");
+  const { messages, status, sendMessage } = useChat({
+    transport: new DefaultChatTransport({
+      // APIの読み込み
+      api: "/api/refinetalk",
+      credentials: "include",
+      headers: {
+        page: page.toString(),
+      },
+    }),
     onError: (e) => {
       toast.error(TOAST_ERROR);
       console.log(e);
@@ -40,7 +47,14 @@ export const Chat: React.FC<ChatProps> = ({
   // 模範解答精製用ボタンハンドル
   const handleAnswer = () => {
     setOnAnswer(true);
-    setMessage(messages[messages.length - 2].content);
+    const previousMessage = messages[messages.length - 2];
+    setMessage(messageText(previousMessage));
+  };
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    sendMessage({ text: input });
+    setInput("");
   };
 
   return (
@@ -114,7 +128,7 @@ export const Chat: React.FC<ChatProps> = ({
             value={input}
             placeholder="回答をしてください... [ENTER で 改行]"
             disabled={status === "submitted" || answerStatus === "submitted"}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
           />
 
           <div className="flex flex-col  self-end">
