@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Chat } from "./contents/chat";
 import { Markdown } from "./contents/markdown";
-import { Navi } from "./navi-header";
+import { Navi } from "./parts/navi-header";
 import { Answer } from "./contents/answer";
 import { useSessionStore } from "@/hooks/useSessionId";
 

@@ -1,8 +1,8 @@
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { SideMenu } from "@/components/side-menu";
-import { SubPage } from "@/components/sub-page";
+import { Header } from "@/components/parts/header";
+import { Footer } from "@/components/parts/footer";
+import { SideMenu } from "@/components/parts/side-menu";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { SelectPage } from "@/components/selectPage";
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
         <div className="flex flex-1">
           <SideMenu />
           <main className="flex-1 flex flex-col">
-            <SubPage />
+            <SelectPage />
             <Footer />
           </main>
         </div>

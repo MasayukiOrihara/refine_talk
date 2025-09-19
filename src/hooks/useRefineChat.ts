@@ -21,8 +21,6 @@ export function useRefineTalkChat(apiPath: string) {
       toast.error(ERR.CHAT_ERROR_TOAST);
       const tags = ["useChat", "frontend"];
 
-      console.log("use" + sessionId);
-
       errStore({ message: ERR.USE_CHAT_ERROR, err: e, tags });
     },
   });

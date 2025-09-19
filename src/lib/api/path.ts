@@ -5,4 +5,4 @@ export const LOGS_ERROR_API = "/api/logs/error";
 export const MARKDOWN_READ_API = "/api/markdown/read";
 
 // LLM
-export const REFINETALK_API = "/api/refinetal";
+export const REFINETALK_API = "/api/refinetalk";
