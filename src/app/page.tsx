@@ -2,7 +2,7 @@ import { Header } from "@/components/parts/header";
 import { Footer } from "@/components/parts/footer";
 import { SideMenu } from "@/components/parts/side-menu";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import { SelectPage } from "@/components/selectPage";
+import { SelectPage } from "@/components/selectPage/selectPage";
 
 export default function Home() {
   return (
