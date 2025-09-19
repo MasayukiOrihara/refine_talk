@@ -33,13 +33,16 @@ export default function RootLayout({
       <body
         className={`${notoSansJp.variable} ${host_Grotesk.className} antialiased font-noto-sans-jp`}
       >
-        <ErrorBoundary>{children}</ErrorBoundary>
-        <Toaster
-          position="top-center"
-          richColors
-          toastOptions={{ className: "custom-toast" }}
-        />
-        <ErrorFlushAgent />
+        <ErrorBoundary>
+          <main>{children}</main>
+
+          <Toaster
+            position="top-center"
+            richColors
+            toastOptions={{ className: "custom-toast" }}
+          />
+          <ErrorFlushAgent />
+        </ErrorBoundary>
       </body>
     </html>
   );
