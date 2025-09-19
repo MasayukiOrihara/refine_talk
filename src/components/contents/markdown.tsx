@@ -32,13 +32,11 @@ export const Markdown: React.FC<{ page: number }> = ({ page }) => {
         setContent(res);
       } catch (err) {
         // MD 取得失敗
-        const { sessionId } = useSessionStore.getState();
         const tags = ["frontend", "markdown"];
 
         toast.error(ERR.FILE_READ_ERROR_TOAST);
         errStore({
           message: ERR.MD_READ_ERROR,
-          sessionId,
           err,
           tags,
         });

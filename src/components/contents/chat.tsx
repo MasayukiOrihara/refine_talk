@@ -1,16 +1,13 @@
-import { useChat } from "@ai-sdk/react";
 import { CircleCheckBig, SendHorizontalIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Ellipsis } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { ChatProps } from "@/lib/type";
-import { TOAST_ERROR } from "@/lib/constants";
-import { DefaultChatTransport } from "ai";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { messageText } from "@/lib/llm/message";
 import { useSessionStore } from "@/hooks/useSessionId";
 import { useRefineTalkChat } from "@/hooks/useRefineChat";
+import { REFINETALK_API } from "@/lib/api/path";
 
 // 最大入力文字数
 const max = 400;
@@ -23,14 +20,14 @@ export const Chat: React.FC<ChatProps> = ({
   answerStatus,
 }) => {
   const [input, setInput] = useState("");
+  // session Id の取得
   const { sessionId } = useSessionStore();
+  const sessionIdRef = useRef(sessionId);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
-  const REFINETALK_API = "/api/refinetalk";
-
-  const { messages, status, sendMessage } = useRefineTalkChat(
-    REFINETALK_API,
-    sessionId
-  );
+  const { messages, status, sendMessage } = useRefineTalkChat(REFINETALK_API);
 
   // assistantメッセージ取得
   const assistantMessage = [...messages]

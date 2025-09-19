@@ -3,14 +3,13 @@ import { DefaultChatTransport } from "ai";
 import { toast } from "sonner";
 import { errStore } from "./useErrorStore";
 import * as ERR from "@/lib/messages/error";
+import { useSessionStore } from "./useSessionId";
 
 /**
  * refine talk 使うためのフック
  */
-export function useRefineTalkChat(
-  apiPath: string,
-  sessionId: string | undefined
-) {
+export function useRefineTalkChat(apiPath: string) {
+  const { sessionId } = useSessionStore.getState();
   return useChat({
     transport: new DefaultChatTransport({
       // APIの読み込み
@@ -22,7 +21,9 @@ export function useRefineTalkChat(
       toast.error(ERR.CHAT_ERROR_TOAST);
       const tags = ["useChat", "frontend"];
 
-      errStore({ message: ERR.USE_CHAT_ERROR, sessionId, err: e, tags });
+      console.log("use" + sessionId);
+
+      errStore({ message: ERR.USE_CHAT_ERROR, err: e, tags });
     },
   });
 }

@@ -26,10 +26,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   // エラーログ取得
   componentDidCatch(err: unknown, info: React.ErrorInfo) {
-    const { sessionId } = useSessionStore.getState();
     const tags = ["ui", "error-boundary"];
 
-    errStore({ message: ERR.UI_ERROR, sessionId, err, info, tags });
+    errStore({ message: ERR.UI_ERROR, err, info, tags });
   }
 
   render() {

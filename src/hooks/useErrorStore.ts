@@ -1,6 +1,7 @@
 import { createHash } from "@/lib/hash";
 import { AppErrorDTO } from "@/lib/schema";
 import { create } from "zustand";
+import { useSessionStore } from "./useSessionId";
 
 type State = {
   errors: AppErrorDTO[];
@@ -13,7 +14,6 @@ type State = {
 // 型を定義（必要に応じて拡張）
 type ErrStorePayload = {
   message: string;
-  sessionId?: string;
   err: unknown;
   info?: React.ErrorInfo;
   tags?: string[];
@@ -51,12 +51,13 @@ export const useErrorStore = create<State>((set, get) => ({
  * エラーが出た時積む共通関数
  * @param message
  * @param err
- * @param sessionId
  * @param info
  * @param tags
  */
 export function errStore(payload: ErrStorePayload) {
-  const { message, err, sessionId, info, tags } = payload;
+  const { message, err, info, tags } = payload;
+  const { sessionId } = useSessionStore.getState();
+
   // 1) 画面には優しく、開発者には詳細を
   console.error(message, err, info);
 

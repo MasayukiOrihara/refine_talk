@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       detail: safeToJson(log.detail),
       severity: log.severity ?? "error",
       tags: log.tags ?? null,
+      session_id: log.sessionId ?? null,
       occurred_at: new Date(log.timestamp).toISOString(),
       hash: log.hash ?? null,
       user_agent: ua,
