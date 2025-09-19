@@ -1,29 +1,22 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { Chat } from "./contents/chat";
-import { Markdown } from "./contents/markdown";
-import { Navi } from "./parts/navi-header";
-import { Answer } from "./contents/answer";
-import { useSessionStore } from "@/hooks/useSessionId";
 
-export const SubPage: React.FC = () => {
-  const [page, setPage] = useState(0);
+import { useSessionStore } from "@/hooks/useSessionId";
+import { FeatureLayout } from "@/components/layouts/FeatureLayout";
+import { Navi } from "@/components/parts/navi-header";
+import { Answer } from "@/components/contents/answer";
+import { Markdown } from "@/components/contents/markdown";
+import { Chat } from "@/components/contents/chat";
+
+export default async function Page({ params }: { params: { page: number } }) {
   const [onAnswer, setOnAnswer] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [aiMessage, setAiMessage] = useState<string>("");
   const [answerStatus, setAnswerStatus] = useState<string>("");
 
-  const { init } = useSessionStore();
-
-  // ここで session ID を初期化
-  useEffect(() => {
-    init();
-  }, [init]);
+  const { page } = await params;
 
   return (
-    <div className="w-full h-full">
-      <Navi page={page} setPage={setPage} />
+    <FeatureLayout>
       <div className="mt-2 flex flex-col md:flex-row max-w-7xl mx-auto gap-2 overflow-hidden">
         <Markdown page={page} file={""} />
         <Answer
@@ -42,6 +35,6 @@ export const SubPage: React.FC = () => {
           answerStatus={answerStatus}
         />
       </div>
-    </div>
+    </FeatureLayout>
   );
-};
+}

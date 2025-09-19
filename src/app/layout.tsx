@@ -30,7 +30,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <ErrorFlushAgent />
       <body
         className={`${notoSansJp.variable} ${host_Grotesk.className} antialiased font-noto-sans-jp`}
       >
@@ -40,6 +39,7 @@ export default function RootLayout({
           richColors
           toastOptions={{ className: "custom-toast" }}
         />
+        <ErrorFlushAgent />
       </body>
     </html>
   );

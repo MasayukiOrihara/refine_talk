@@ -59,12 +59,13 @@ const scenarios = [
 
 // リストの表示数
 const maxLength = 2;
+const INTRO_PATH = "/play/intro/";
 
 export default function ScenarioList() {
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {scenarios.map((s) => (
-        <Link key={s.slug} href={`/play/${s.slug}`}>
+        <Link key={s.slug} href={`${INTRO_PATH}${s.slug}`}>
           <C.Card className="w-[240px] cursor-pointer hover:shadow-lg transition">
             <C.CardHeader className="pb-1">
               <C.CardTitle className="flex items-center text-xl gap-2">
