@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSessionStore } from "@/hooks/useSessionId";
 
 import ScenarioList from "./scenarioList";
+import { Button } from "../ui/button";
 
 export const SelectPage: React.FC = () => {
   // ここで session ID を初期化
@@ -31,19 +32,18 @@ export const SelectPage: React.FC = () => {
       {/* 問題選択 */}
       <ScenarioList />
 
-      <div className="text-center text-muted-foreground mt-12">
+      <div className="w-full text-center text-muted-foreground py-2 mt-12 mb-2 bg-zinc-200 rounded">
         {/* 連絡欄 */}
         <p>連絡・要望は システム開発事業部 折原 まで</p>
-        <a
-          href="https://forms.gle/qb1hQybS4pRrae3r7"
-          className="text-indigo-500 underline hover:text-indigo-800"
-        >
-          AI アンケートページ
-        </a>
-        <div className="flex flex-row justify-center text-zinc-400 text-sm pt-2 gap-4">
-          <span>version: 0.5.2</span>
-          <span>update: 2025-09-19</span>
-        </div>
+        <Button asChild variant="link" className="mt-[-6px]">
+          <a
+            href="https://forms.gle/qb1hQybS4pRrae3r7"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            AI アンケート（Googleフォーム）
+          </a>
+        </Button>
       </div>
     </div>
   );

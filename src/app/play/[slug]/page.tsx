@@ -1,8 +1,8 @@
 import { Markdown } from "@/components/contents/markdown";
+import BackButton from "@/components/parts/backButton";
 import { Footer } from "@/components/parts/footer";
 import { Header } from "@/components/parts/header";
 import { SideMenu } from "@/components/parts/side-menu";
-import { SubPage } from "@/components/sub-page";
 import { Button } from "@/components/ui/button";
 
 export default async function Page({ params }: { params: { slug: string } }) {
@@ -18,9 +18,12 @@ export default async function Page({ params }: { params: { slug: string } }) {
           <div className="m-auto">
             <Markdown page={1} file={slug} />
 
-            <div className="flex ">
-              <Button>戻る</Button>
-              <Button>問題を開始する</Button>
+            {/* 遷移ボタン */}
+            <div className="flex justify-center gap-12">
+              <BackButton />
+              <Button className=" bg-indigo-500 hover:bg-indigo-800 px-12">
+                問題を開始する
+              </Button>
             </div>
           </div>
           <Footer />

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import * as C from "@/components/ui/card";
+import { Button } from "../ui/button";
 
 const scenarios = [
   {
@@ -89,9 +90,9 @@ export default function ScenarioList() {
               </ul>
             </C.CardContent>
             <C.CardFooter>
-              <button className="w-full bg-indigo-500 hover:bg-indigo-800 hover:cursor-pointer text-white py-2 rounded-md">
+              <Button className="w-full bg-indigo-500 hover:bg-indigo-800">
                 開始する
-              </button>
+              </Button>
             </C.CardFooter>
           </C.Card>
         </Link>
