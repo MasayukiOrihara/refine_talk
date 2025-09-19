@@ -3,6 +3,7 @@ import { Host_Grotesk, Noto_Sans_JP } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { ErrorFlushAgent } from "@/components/error/ErrorFlushAgent";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 
 const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -33,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${notoSansJp.variable} ${host_Grotesk.className} antialiased font-noto-sans-jp`}
       >
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
         <Toaster
           position="top-center"
           richColors

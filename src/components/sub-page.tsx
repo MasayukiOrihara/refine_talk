@@ -25,7 +25,7 @@ export const SubPage: React.FC = () => {
     <div className="w-full h-full">
       <Navi page={page} setPage={setPage} />
       <div className="mt-2 flex flex-col md:flex-row max-w-7xl mx-auto gap-2 overflow-hidden">
-        <Markdown page={page} />
+        <Markdown page={page} file={""} />
         <Answer
           page={page}
           onAnswer={onAnswer}

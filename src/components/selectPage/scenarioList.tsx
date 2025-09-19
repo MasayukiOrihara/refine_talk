@@ -3,7 +3,7 @@ import * as C from "@/components/ui/card";
 
 const scenarios = [
   {
-    slug: "manufacturing-01",
+    slug: "it_dev-intro.md",
     title: "💻 開発 新人",
     description: "IT従事者向け 初級 全6問",
     contents: ["〇〇", "〇〇", "〇〇", "〇〇", "〇〇", "〇〇"],
@@ -35,7 +35,7 @@ export default function ScenarioList() {
         <Link key={s.slug} href={`/play/${s.slug}`}>
           <C.Card className="w-[240px] cursor-pointer hover:shadow-lg transition">
             <C.CardHeader>
-              <C.CardTitle className="flex items-center gap-2">
+              <C.CardTitle className="flex items-center text-xl gap-2">
                 {s.title}
               </C.CardTitle>
               <C.CardDescription>{s.description}</C.CardDescription>

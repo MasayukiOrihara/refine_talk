@@ -1,3 +1,5 @@
+"use client";
+
 import { errStore } from "@/hooks/useErrorStore";
 import { useSessionStore } from "@/hooks/useSessionId";
 import { MARKDOWN_READ_API } from "@/lib/api/path";
@@ -12,15 +14,18 @@ import { toast } from "sonner";
 
 import * as ERR from "@/lib/messages/error";
 
-export const Markdown: React.FC<{ page: number }> = ({ page }) => {
+export const Markdown: React.FC<{ page: number; file: string }> = ({
+  page,
+  file,
+}) => {
   const [content, setContent] = useState("");
 
   // MD ファイルを読み込む API を叩いて取得
   useEffect(() => {
     console.log("ページ番号: " + page);
 
-    const file = MARKDOWN_NAME[page];
-    const dir = "public/markdowns/question/it";
+    //const file = MARKDOWN_NAME[page];
+    const dir = "public/markdowns/scenario";
     const mdInfo: MarkdownInfo = { file, dir };
 
     (async () => {
@@ -46,7 +51,7 @@ export const Markdown: React.FC<{ page: number }> = ({ page }) => {
 
   return (
     <div className="markdown-body w-2xl m-5 text-zinc-500 border-zinc-200">
-      <div className="border border-dashed p-6 rounded">
+      <div className="border border-dashed px-12 py-4 rounded">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
       </div>
     </div>
