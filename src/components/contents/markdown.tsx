@@ -47,7 +47,8 @@ export const Markdown: React.FC<{ page: number; file: string }> = ({
         });
       }
     })();
-  }, [page]);
+    console.log("🐶");
+  }, []);
 
   return (
     <div className="markdown-body w-2xl m-5 text-zinc-500 border-zinc-200">

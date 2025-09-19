@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useSessionStore } from "@/hooks/useSessionId";
-import { FeatureLayout } from "@/components/layouts/FeatureLayout";
-import { Navi } from "@/components/parts/navi-header";
+import { FeatureLayout } from "@/components/layouts/featureLayout";
 import { Answer } from "@/components/contents/answer";
 import { Markdown } from "@/components/contents/markdown";
 import { Chat } from "@/components/contents/chat";

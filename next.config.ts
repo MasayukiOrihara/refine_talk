@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import path from 'path';
+import path from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      '@contents': path.resolve(__dirname, 'src/contents'),
-      '@data': path.resolve(__dirname, 'src/data'),
+      "@contents": path.resolve(__dirname, "src/contents"),
+      "@data": path.resolve(__dirname, "src/data"),
     };
     return config;
   },

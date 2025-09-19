@@ -1,4 +1,4 @@
-import { FeatureLayout } from "@/components/layouts/FeatureLayout";
+import { FeatureLayout } from "@/components/layouts/featureLayout";
 import { Markdown } from "@/components/contents/markdown";
 import { Button } from "@/components/ui/button";
 import BackButton from "@/components/parts/backButton";
