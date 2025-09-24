@@ -1,3 +1,5 @@
+"use client";
+
 import { TOAST_ERROR } from "@/lib/constants";
 import { messageText } from "@/lib/llm/message";
 import { AnswerProps } from "@/lib/type";
@@ -5,36 +7,33 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useUserMessages } from "../provider/MessageProvider";
+import { useRefineTalkChat } from "@/hooks/useRefineChat";
 
-export const Answer: React.FC<AnswerProps> = ({
-  page,
-  onAnswer,
-  setOnAnswer,
-  message,
-  setAiMessage,
-  setAnswerStatus,
-}) => {
-  const { messages, status, sendMessage } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/answer",
-      credentials: "include",
-      headers: {
-        page: page.toString(),
-      },
-    }),
+const ANSWER_API = "/api/answer";
 
-    onError: (e) => {
-      toast.error(TOAST_ERROR);
-      console.log(e);
-    },
-  });
+export const Answer: React.FC = () => {
+  // プロバイダーから取得
+  const {
+    currentUserMessage,
+    setAiMessage,
+    setAnswerStatus,
+    onAnswer,
+    setOnAnswer,
+    file,
+  } = useUserMessages();
+
+  const { messages, status, sendMessage } = useRefineTalkChat(ANSWER_API);
 
   // 模範解答生成ボタンが押されたら、生成開始する
   useEffect(() => {
     if (!onAnswer) return;
 
-    console.log(message);
-    sendMessage({ role: "user", parts: [{ type: "text", text: message }] });
+    console.log(currentUserMessage);
+    sendMessage({
+      role: "user",
+      parts: [{ type: "text", text: currentUserMessage! }],
+    });
 
     setOnAnswer(false);
   }, [onAnswer]);

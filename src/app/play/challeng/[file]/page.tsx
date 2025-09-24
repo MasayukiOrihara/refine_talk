@@ -5,19 +5,19 @@ import { Chat } from "@/components/contents/chat";
 import { useParams } from "next/navigation";
 import { Navi } from "@/components/parts/navi-header";
 
-export default async function Page(props: PageProps<"/play/challeng/[page]">) {
+export default async function Page(props: PageProps<"/play/challeng/[file]">) {
   // const [onAnswer, setOnAnswer] = useState(false);
   // const [message, setMessage] = useState<string>("");
   // const [aiMessage, setAiMessage] = useState<string>("");
   // const [answerStatus, setAnswerStatus] = useState<string>("");
 
-  const { page } = await props.params;
+  const { file } = await props.params;
 
   return (
     <FeatureLayout>
       <div className="mt-2 flex flex-col md:flex-row max-w-7xl mx-auto gap-2 overflow-hidden">
         {/** todo: navi を追加する */}
-        <MarkdownLoader page={0} file={page} />
+        <MarkdownLoader page={0} file={file} />
         {/* <Answer
           page={pageNum}
           onAnswer={onAnswer}
@@ -33,8 +33,8 @@ export default async function Page(props: PageProps<"/play/challeng/[page]">) {
           aiMessage={aiMessage}
           answerStatus={answerStatus}
         /> */}
-
-        <Chat />
+        <Answer />
+        <Chat file={file} />
       </div>
     </FeatureLayout>
   );

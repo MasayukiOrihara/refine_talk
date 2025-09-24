@@ -4,20 +4,25 @@ import { CircleCheckBig, SendHorizontalIcon } from "lucide-react";
 import { Ellipsis } from "lucide-react";
 
 import { Button } from "../ui/button";
-import { ChatProps } from "@/lib/type";
 import { useEffect, useRef, useState } from "react";
 import { messageText } from "@/lib/llm/message";
 import { useSessionStore } from "@/hooks/useSessionId";
 import { useRefineTalkChat } from "@/hooks/useRefineChat";
 import { REFINETALK_API } from "@/lib/api/path";
 import { useUserMessages } from "../provider/MessageProvider";
+import { useParams } from "next/navigation";
+
+type ChatProps = {
+  file: string;
+};
 
 // 最大入力文字数
 const max = 400;
 
-export const Chat: React.FC = () => {
+export const Chat: React.FC<ChatProps> = ({ file }) => {
   const [input, setInput] = useState("");
-  const { addUserMessage, aiMessage, answerStatus, setOnAnswer, page } =
+  // プロバイダーから取得
+  const { addUserMessage, aiMessage, answerStatus, setOnAnswer } =
     useUserMessages();
   // session Id の取得
   const { sessionId } = useSessionStore();
@@ -25,6 +30,8 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
+
+  console.log(file);
 
   const { messages, status, sendMessage } = useRefineTalkChat(REFINETALK_API);
 
@@ -47,7 +54,7 @@ export const Chat: React.FC = () => {
     e.preventDefault();
     sendMessage(
       { role: "user", parts: [{ type: "text", text: input }] },
-      { body: { sessionId: sessionId, page: page } }
+      { body: { sessionId: sessionId, file: file } }
     );
     setInput("");
   };

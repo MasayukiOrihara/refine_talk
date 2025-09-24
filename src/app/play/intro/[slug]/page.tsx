@@ -16,7 +16,7 @@ export default async function Page(props: PageProps<"/play/intro/[slug]">) {
   const target = scenarios.find((s) => s.slug === slug);
   const file = target?.file?.[0];
   if (!file) notFound(); // 404エラー
-  console.log(file);
+
   return (
     <FeatureLayout>
       <div className="m-auto">

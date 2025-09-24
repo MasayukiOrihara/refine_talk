@@ -27,10 +27,12 @@ export async function POST(req: Request) {
     // フロントから今までのメッセージを取得
     const messages: UIMessage[] = body.messages ?? [];
     // ページ数とsession idの取得
-    const page: number = body?.page;
+    const file: string = body?.file;
     const sessionId: string = body?.sessionId;
-    if (typeof page !== "number" || !sessionId) {
-      throw new Error(`${ERR.VALUE_ERROR}: page or session id`);
+    console.log(sessionId);
+    console.log(file);
+    if (!file || !sessionId) {
+      throw new Error(`${ERR.VALUE_ERROR}: file or session id`);
     }
 
     console.log("🧠 refine talk api...");
@@ -77,7 +79,7 @@ export async function POST(req: Request) {
     );
     const promptVariables = {
       history: formattedPreviousMessages.join("\n"),
-      question: MARKDOWN_NAME[page],
+      question: MARKDOWN_NAME[0],
       input: input,
       score: score,
       prompt1_output: checkPoint,
