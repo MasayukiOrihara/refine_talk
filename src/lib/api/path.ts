@@ -6,3 +6,6 @@ export const MARKDOWN_READ_API = "/api/markdown/read";
 
 // LLM
 export const REFINETALK_API = "/api/refinetalk";
+
+// page
+export const INTRO_PATH = "/play/intro/";

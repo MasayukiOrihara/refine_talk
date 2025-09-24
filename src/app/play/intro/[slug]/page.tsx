@@ -1,16 +1,16 @@
 import { FeatureLayout } from "@/components/layouts/featureLayout";
-import { Markdown } from "@/components/contents/markdown";
+import { MarkdownLoader } from "@/components/contents/markdownLoader";
 import { Button } from "@/components/ui/button";
 import BackButton from "@/components/parts/backButton";
 
-export default async function Page({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
+export default async function Page(props: PageProps<"/play/intro/[slug]">) {
+  const { slug } = await props.params;
 
   console.log(slug);
   return (
     <FeatureLayout>
       <div className="m-auto">
-        <Markdown page={1} file={slug} />
+        <MarkdownLoader page={1} file={slug} />
 
         {/* 遷移ボタン */}
         <div className="flex justify-center gap-12">

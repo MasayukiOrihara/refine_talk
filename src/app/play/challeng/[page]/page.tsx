@@ -1,24 +1,28 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useState } from "react";
 
 import { FeatureLayout } from "@/components/layouts/featureLayout";
 import { Answer } from "@/components/contents/answer";
-import { Markdown } from "@/components/contents/markdown";
+import { MarkdownLoader } from "@/components/contents/markdownLoader";
 import { Chat } from "@/components/contents/chat";
+import { useParams } from "next/navigation";
 
-export default async function Page({ params }: { params: { page: number } }) {
+export default async function Page() {
   const [onAnswer, setOnAnswer] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [aiMessage, setAiMessage] = useState<string>("");
   const [answerStatus, setAnswerStatus] = useState<string>("");
 
-  const { page } = await params;
+  const { page } = useParams<{ page: string }>();
+  const pageNum = Number(page);
 
   return (
     <FeatureLayout>
       <div className="mt-2 flex flex-col md:flex-row max-w-7xl mx-auto gap-2 overflow-hidden">
-        <Markdown page={page} file={""} />
+        <MarkdownLoader page={pageNum} file={""} />
         <Answer
-          page={page}
+          page={pageNum}
           onAnswer={onAnswer}
           setOnAnswer={setOnAnswer}
           message={message}
@@ -26,7 +30,7 @@ export default async function Page({ params }: { params: { page: number } }) {
           setAnswerStatus={setAnswerStatus}
         />
         <Chat
-          page={page}
+          page={pageNum}
           setOnAnswer={setOnAnswer}
           setMessage={setMessage}
           aiMessage={aiMessage}

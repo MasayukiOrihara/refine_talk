@@ -1,10 +1,8 @@
 "use client";
 
 import { errStore } from "@/hooks/useErrorStore";
-import { useSessionStore } from "@/hooks/useSessionId";
 import { MARKDOWN_READ_API } from "@/lib/api/path";
 import { requestApi } from "@/lib/api/request/request";
-import { MARKDOWN_NAME } from "@/lib/constants";
 
 import { MarkdownInfo } from "@/lib/schema";
 import { useEffect, useState } from "react";
@@ -14,7 +12,7 @@ import { toast } from "sonner";
 
 import * as ERR from "@/lib/messages/error";
 
-export const Markdown: React.FC<{ page: number; file: string }> = ({
+export const MarkdownLoader: React.FC<{ page: number; file: string }> = ({
   page,
   file,
 }) => {
@@ -47,7 +45,6 @@ export const Markdown: React.FC<{ page: number; file: string }> = ({
         });
       }
     })();
-    console.log("🐶");
   }, []);
 
   return (
