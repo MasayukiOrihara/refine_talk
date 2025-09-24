@@ -1,3 +1,5 @@
+"use client";
+
 import { CircleCheckBig, SendHorizontalIcon } from "lucide-react";
 import { Ellipsis } from "lucide-react";
 
@@ -8,18 +10,15 @@ import { messageText } from "@/lib/llm/message";
 import { useSessionStore } from "@/hooks/useSessionId";
 import { useRefineTalkChat } from "@/hooks/useRefineChat";
 import { REFINETALK_API } from "@/lib/api/path";
+import { useUserMessages } from "../provider/MessageProvider";
 
 // 最大入力文字数
 const max = 400;
 
-export const Chat: React.FC<ChatProps> = ({
-  page,
-  setOnAnswer,
-  setMessage,
-  aiMessage,
-  answerStatus,
-}) => {
+export const Chat: React.FC = () => {
   const [input, setInput] = useState("");
+  const { addUserMessage, aiMessage, answerStatus, setOnAnswer, page } =
+    useUserMessages();
   // session Id の取得
   const { sessionId } = useSessionStore();
   const sessionIdRef = useRef(sessionId);
@@ -41,7 +40,7 @@ export const Chat: React.FC<ChatProps> = ({
   const handleAnswer = () => {
     setOnAnswer(true);
     const previousMessage = messages[messages.length - 2];
-    setMessage(messageText(previousMessage));
+    addUserMessage(messageText(previousMessage));
   };
 
   const handleSubmit = (e: { preventDefault: () => void }) => {

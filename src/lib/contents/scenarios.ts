@@ -1,4 +1,4 @@
-const scenarios = [
+export const scenarios = [
   {
     slug: "it-dev-intro.md",
     title: "💻 開発 新人",
@@ -24,7 +24,16 @@ const scenarios = [
       "障害復旧対応の相談",
       "ﾘｿｰｽ増強の相談",
     ],
+    file: [
+      "it-ops-q1-incident-report.md",
+      "it-ops-q2-maintenance-report.md",
+      "it-ops-q3-downtime-notice.md",
+      "it-ops-q4-security-patch.md",
+      "it-ops-q5-incident-recovery.md",
+      "it-ops-q6-resource-scaling.md",
+    ],
   },
+
   {
     slug: "mfg-intro.md",
     title: "🏭 製造業 新人",

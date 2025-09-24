@@ -2,6 +2,7 @@ import Link from "next/link";
 import * as C from "@/components/ui/card";
 import { Button } from "../ui/button";
 import { INTRO_PATH } from "@/lib/api/path";
+import { scenarios } from "@/lib/contents/scenarios";
 
 // リストの表示数
 const maxLength = 2;

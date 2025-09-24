@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { ErrorFlushAgent } from "@/components/error/ErrorFlushAgent";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { MessageProvider } from "@/components/provider/MessageProvider";
 
 const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -34,7 +35,9 @@ export default function RootLayout({
         className={`${notoSansJp.variable} ${host_Grotesk.className} antialiased font-noto-sans-jp`}
       >
         <ErrorBoundary>
-          <main>{children}</main>
+          <main>
+            <MessageProvider>{children}</MessageProvider>
+          </main>
 
           <Toaster
             position="top-center"

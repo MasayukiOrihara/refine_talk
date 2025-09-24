@@ -1,27 +1,24 @@
-"use client";
-
-import { useState } from "react";
-
 import { FeatureLayout } from "@/components/layouts/featureLayout";
 import { Answer } from "@/components/contents/answer";
 import { MarkdownLoader } from "@/components/contents/markdownLoader";
 import { Chat } from "@/components/contents/chat";
 import { useParams } from "next/navigation";
+import { Navi } from "@/components/parts/navi-header";
 
-export default async function Page() {
-  const [onAnswer, setOnAnswer] = useState(false);
-  const [message, setMessage] = useState<string>("");
-  const [aiMessage, setAiMessage] = useState<string>("");
-  const [answerStatus, setAnswerStatus] = useState<string>("");
+export default async function Page(props: PageProps<"/play/challeng/[page]">) {
+  // const [onAnswer, setOnAnswer] = useState(false);
+  // const [message, setMessage] = useState<string>("");
+  // const [aiMessage, setAiMessage] = useState<string>("");
+  // const [answerStatus, setAnswerStatus] = useState<string>("");
 
-  const { page } = useParams<{ page: string }>();
-  const pageNum = Number(page);
+  const { page } = await props.params;
 
   return (
     <FeatureLayout>
       <div className="mt-2 flex flex-col md:flex-row max-w-7xl mx-auto gap-2 overflow-hidden">
-        <MarkdownLoader page={pageNum} file={""} />
-        <Answer
+        {/** todo: navi を追加する */}
+        <MarkdownLoader page={0} file={page} />
+        {/* <Answer
           page={pageNum}
           onAnswer={onAnswer}
           setOnAnswer={setOnAnswer}
@@ -35,7 +32,9 @@ export default async function Page() {
           setMessage={setMessage}
           aiMessage={aiMessage}
           answerStatus={answerStatus}
-        />
+        /> */}
+
+        <Chat />
       </div>
     </FeatureLayout>
   );
