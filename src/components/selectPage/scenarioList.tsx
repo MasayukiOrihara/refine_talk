@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 
 const scenarios = [
   {
-    slug: "it_dev-intro.md",
+    slug: "it-dev-intro.md",
     title: "💻 開発 新人",
     description: "IT従事者向け 初級 全6問",
     contents: [
@@ -17,7 +17,7 @@ const scenarios = [
     ],
   },
   {
-    slug: "it_ops-intro.md",
+    slug: "it-ops-intro.md",
     title: "🖥 保守・監視 新人",
     description: "IT従事者向け 初級 全6問",
     contents: [
