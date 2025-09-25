@@ -1,6 +1,6 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
+import { ChatStatus } from "ai";
 import React, {
   createContext,
   useContext,
@@ -11,10 +11,10 @@ import React, {
 } from "react";
 
 /* ---------- types ---------- */
-type ChatStatus = ReturnType<typeof useChat>["status"];
 type State = {
   userMessages: string[];
-  aiMessage: string;
+  assistantMessages: string[];
+  aiAnswer: string;
   answerStatus: ChatStatus;
   onAnswer: boolean;
   file: string;
@@ -22,7 +22,8 @@ type State = {
 
 type Action =
   | { type: "ADD_USER_MESSAGE"; msg: string }
-  | { type: "SET_AI_MESSAGE"; msg: string }
+  | { type: "ADD_ASSISTANT_MESSAGE"; msg: string }
+  | { type: "SET_AI_ANSWER"; msg: string }
   | { type: "SET_ANSWER_STATUS"; value: ChatStatus }
   | { type: "SET_ON_ANSWER"; value: boolean }
   | { type: "SET_FILE"; file: string }
@@ -32,8 +33,11 @@ type Ctx = {
   userMessages: string[];
   addUserMessage: (msg: string) => void;
   currentUserMessage: string | undefined;
-  aiMessage: string;
-  setAiMessage: (msg: string) => void;
+  assistantMessages: string[];
+  addAssistantMessage: (msg: string) => void;
+  currentAssistantMessage: string | undefined;
+  aiAnswer: string;
+  setAiAnswer: (msg: string) => void;
   answerStatus: ChatStatus;
   setAnswerStatus: (value: ChatStatus) => void;
   onAnswer: boolean;
@@ -46,7 +50,8 @@ type Ctx = {
 /* ---------- reducer ---------- */
 const initialState: State = {
   userMessages: [],
-  aiMessage: "",
+  assistantMessages: [],
+  aiAnswer: "",
   answerStatus: "ready" as ChatStatus,
   onAnswer: false,
   file: "",
@@ -56,8 +61,13 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "ADD_USER_MESSAGE":
       return { ...state, userMessages: [...state.userMessages, action.msg] };
-    case "SET_AI_MESSAGE":
-      return { ...state, aiMessage: action.msg };
+    case "ADD_ASSISTANT_MESSAGE":
+      return {
+        ...state,
+        assistantMessages: [...state.assistantMessages, action.msg],
+      };
+    case "SET_AI_ANSWER":
+      return { ...state, aiAnswer: action.msg };
     case "SET_ANSWER_STATUS":
       return { ...state, answerStatus: action.value };
     case "SET_ON_ANSWER":
@@ -82,8 +92,12 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     (msg: string) => dispatch({ type: "ADD_USER_MESSAGE", msg }),
     []
   );
-  const setAiMessage = useCallback(
-    (msg: string) => dispatch({ type: "SET_AI_MESSAGE", msg }),
+  const addAssistantMessage = useCallback(
+    (msg: string) => dispatch({ type: "ADD_ASSISTANT_MESSAGE", msg }),
+    []
+  );
+  const setAiAnswer = useCallback(
+    (msg: string) => dispatch({ type: "SET_AI_ANSWER", msg }),
     []
   );
   const setAnswerStatus = useCallback(
@@ -105,13 +119,21 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     return arr.length ? arr[arr.length - 1] : undefined;
   }, [state.userMessages]);
 
+  const currentAssistantMessage = useMemo(() => {
+    const arr = state.assistantMessages;
+    return arr.length ? arr[arr.length - 1] : undefined;
+  }, [state.assistantMessages]);
+
   const value = useMemo<Ctx>(
     () => ({
       userMessages: state.userMessages,
       addUserMessage,
       currentUserMessage,
-      aiMessage: state.aiMessage,
-      setAiMessage,
+      assistantMessages: state.assistantMessages,
+      addAssistantMessage,
+      currentAssistantMessage,
+      aiAnswer: state.aiAnswer,
+      setAiAnswer,
       answerStatus: state.answerStatus,
       setAnswerStatus,
       onAnswer: state.onAnswer,
@@ -124,8 +146,11 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       state.userMessages,
       addUserMessage,
       currentUserMessage,
-      state.aiMessage,
-      setAiMessage,
+      state.assistantMessages,
+      addAssistantMessage,
+      currentAssistantMessage,
+      state.aiAnswer,
+      setAiAnswer,
       state.answerStatus,
       setAnswerStatus,
       state.onAnswer,

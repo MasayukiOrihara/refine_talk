@@ -1,3 +1,5 @@
+import { useChat } from "@ai-sdk/react";
+
 /** propsで使っている型 */
 export type AnswerProps = {
   page: number;

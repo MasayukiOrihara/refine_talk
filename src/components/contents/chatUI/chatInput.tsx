@@ -7,8 +7,8 @@ import { CircleCheckBig, SendHorizontalIcon } from "lucide-react";
 import { useUserMessages } from "@/components/provider/MessageProvider";
 import { Button } from "@/components/ui/button";
 import { INPUT_LENGTH_MAX } from "../chat";
+import { ChatStatus } from "ai";
 
-type ChatStatus = ReturnType<typeof useChat>["status"];
 type ChatInputProps = {
   status: ChatStatus;
   onSubmit: (input: string) => void;
