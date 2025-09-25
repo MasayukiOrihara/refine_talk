@@ -11,6 +11,14 @@ export const scenarios = [
       "設計用の判断に迷う場面",
       "納期調整の相談",
     ],
+    file: [
+      "it-dev-q1-progress-report.md",
+      "it-dev-q2-bugfix-report.md",
+      "it-dev-q3-spec-change.md",
+      "it-dev-q4-release-schedule.md",
+      "it-dev-q5-design-decision.md",
+      "it-dev-q6-deadline-adjustment.md",
+    ],
   },
   {
     slug: "it-ops-intro.md",
@@ -46,6 +54,14 @@ export const scenarios = [
       "品質異常への対応",
       "設備ﾄﾗﾌﾞﾙ時の判断",
     ],
+    file: [
+      "mfg-q1-quality-check.md",
+      "mfg-q2-trouble-report.md",
+      "mfg-q3-process-change.md",
+      "mfg-q4-quality-issue-response.md",
+      "mfg-q5-equipment-failure-response.md",
+      "mfg-q6-safety-notice.md",
+    ],
   },
   {
     slug: "sales-intro.md",
@@ -58,6 +74,14 @@ export const scenarios = [
       "契約条件変更の共有",
       "クレーム対応の相談",
       "値引き交渉の相談",
+    ],
+    file: [
+      "sales-q1-meeting-result.md",
+      "sales-q2-target-progress.md",
+      "sales-q3-client-visit-schedule.md",
+      "sales-q4-contract-terms-update.md",
+      "sales-q5-complaint-handling.md",
+      "sales-q6-price-negotiation.md",
     ],
   },
 ];
