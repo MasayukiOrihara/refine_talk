@@ -1,7 +1,7 @@
 import { createHash } from "@/lib/hash";
 import { AppErrorDTO } from "@/lib/schema";
 import { create } from "zustand";
-import { useSessionStore } from "./useSessionId";
+import { useSessionId } from "./useSessionId";
 
 type State = {
   errors: AppErrorDTO[];
@@ -56,7 +56,7 @@ export const useErrorStore = create<State>((set, get) => ({
  */
 export function errStore(payload: ErrStorePayload) {
   const { message, err, info, tags } = payload;
-  const { sessionId } = useSessionStore.getState();
+  const sessionId = useSessionId();
 
   // 1) 画面には優しく、開発者には詳細を
   console.error(message, err, info);
@@ -78,7 +78,7 @@ export function errStore(payload: ErrStorePayload) {
   // 3) 状態へ集約（後でバッチ送信）
   const { push } = useErrorStore.getState();
   push({
-    sessionId: sessionId,
+    sessionId: sessionId ?? undefined,
     message: errorMessage,
     detail: JSON.stringify({ info }, null, 2), // componentStackは下で別埋め
     name: e.name,

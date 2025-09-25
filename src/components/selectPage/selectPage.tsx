@@ -1,18 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSessionStore } from "@/hooks/useSessionId";
 
 import ScenarioList from "./scenarioList";
 import { Button } from "../ui/button";
 
 export const SelectPage: React.FC = () => {
-  // ここで session ID を初期化
-  const { init } = useSessionStore();
-  useEffect(() => {
-    init();
-  }, [init]);
-
   return (
     <div className="flex flex-col items-center w-full md:w-4xl h-full m-auto ">
       <div className="flex flex-col items-center px-4 py-8 gap-0.5">

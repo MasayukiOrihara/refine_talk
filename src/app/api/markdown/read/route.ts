@@ -5,6 +5,8 @@ import { MarkdownInfo, MarkdownInfoSchema } from "@/lib/schema";
 import path from "path";
 import { readFile } from "fs/promises";
 
+export const runtime = "nodejs";
+
 /**
  * markdown ファイルを取得する API
  * @param req

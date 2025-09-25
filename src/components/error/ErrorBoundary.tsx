@@ -3,7 +3,6 @@
 import React from "react";
 
 import { errStore } from "@/hooks/useErrorStore";
-import { useSessionStore } from "@/hooks/useSessionId";
 import * as ERR from "@/lib/messages/error";
 
 type Props = { children: React.ReactNode };

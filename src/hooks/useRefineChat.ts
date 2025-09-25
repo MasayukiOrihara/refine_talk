@@ -3,13 +3,11 @@ import { DefaultChatTransport } from "ai";
 import { toast } from "sonner";
 import { errStore } from "./useErrorStore";
 import * as ERR from "@/lib/messages/error";
-import { useSessionStore } from "./useSessionId";
 
 /**
  * refine talk 使うためのフック
  */
 export function useRefineTalkChat(apiPath: string) {
-  const { sessionId } = useSessionStore.getState();
   return useChat({
     transport: new DefaultChatTransport({
       // APIの読み込み

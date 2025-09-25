@@ -6,11 +6,10 @@ import { Ellipsis } from "lucide-react";
 import { Button } from "../ui/button";
 import { useEffect, useRef, useState } from "react";
 import { messageText } from "@/lib/llm/message";
-import { useSessionStore } from "@/hooks/useSessionId";
 import { useRefineTalkChat } from "@/hooks/useRefineChat";
 import { REFINETALK_API } from "@/lib/api/path";
 import { useUserMessages } from "../provider/MessageProvider";
-import { useParams } from "next/navigation";
+import { useSessionId } from "@/hooks/useSessionId";
 
 type ChatProps = {
   file: string;
@@ -22,16 +21,14 @@ const max = 400;
 export const Chat: React.FC<ChatProps> = ({ file }) => {
   const [input, setInput] = useState("");
   // プロバイダーから取得
-  const { addUserMessage, aiMessage, answerStatus, setOnAnswer } =
+  const { addUserMessage, aiMessage, answerStatus, setOnAnswer, setFile } =
     useUserMessages();
   // session Id の取得
-  const { sessionId } = useSessionStore();
+  const sessionId = useSessionId();
   const sessionIdRef = useRef(sessionId);
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
-
-  console.log(file);
 
   const { messages, status, sendMessage } = useRefineTalkChat(REFINETALK_API);
 
