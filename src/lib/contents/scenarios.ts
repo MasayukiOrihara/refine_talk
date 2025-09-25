@@ -1,3 +1,5 @@
+export const SCENARIO_PATH = "public/markdowns/scenario";
+
 export const scenarios = [
   {
     slug: "it-dev-intro.md",

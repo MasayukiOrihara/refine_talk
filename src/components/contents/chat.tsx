@@ -10,26 +10,28 @@ import { useRefineTalkChat } from "@/hooks/useRefineChat";
 import { REFINETALK_API } from "@/lib/api/path";
 import { useUserMessages } from "../provider/MessageProvider";
 import { useSessionId } from "@/hooks/useSessionId";
-
-type ChatProps = {
-  file: string;
-};
+import ChatInput from "./chatUI/chatInput";
 
 // 最大入力文字数
-const max = 400;
+export const INPUT_LENGTH_MAX = 400;
 
-export const Chat: React.FC<ChatProps> = ({ file }) => {
-  const [input, setInput] = useState("");
+export const Chat: React.FC<{ file: string }> = ({ file }) => {
   // プロバイダーから取得
-  const { addUserMessage, aiMessage, answerStatus, setOnAnswer, setFile } =
-    useUserMessages();
+  const {
+    addUserMessage,
+    currentUserMessage,
+    aiMessage,
+    answerStatus,
+    setOnAnswer,
+    setFile,
+  } = useUserMessages();
   // session Id の取得
   const sessionId = useSessionId();
   const sessionIdRef = useRef(sessionId);
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
-
+  // useChat のカスタムフック
   const { messages, status, sendMessage } = useRefineTalkChat(REFINETALK_API);
 
   // assistantメッセージ取得
@@ -41,19 +43,21 @@ export const Chat: React.FC<ChatProps> = ({ file }) => {
   const userMessages = messages.filter((msg) => msg.role === "user");
 
   // 模範解答精製用ボタンハンドル
-  const handleAnswer = () => {
-    setOnAnswer(true);
-    const previousMessage = messages[messages.length - 2];
-    addUserMessage(messageText(previousMessage));
-  };
+  // const handleAnswer = () => {
+  //   setOnAnswer(true);
+  //   const previousMessage = messages[messages.length - 2];
+  //   addUserMessage(messageText(previousMessage));
+  // };
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
+  // refine talk(メインLLM)に提出
+  const handleSubmit = (input: string) => {
+    // プロバイダーに入力
+    addUserMessage(input);
+    // LLM に送信
     sendMessage(
       { role: "user", parts: [{ type: "text", text: input }] },
       { body: { sessionId: sessionId, file: file } }
     );
-    setInput("");
   };
 
   return (
@@ -120,59 +124,8 @@ export const Chat: React.FC<ChatProps> = ({ file }) => {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-2xl p-4">
-        <div className="flex w-full gap-4">
-          <textarea
-            className="bg-zinc-800 w-full p-2 h-30 border border-zinc-700 rounded shadow-xl text-white placeholder:text-neutral-400"
-            value={input}
-            placeholder="回答をしてください... [ENTER で 改行]"
-            disabled={status === "submitted" || answerStatus === "submitted"}
-            onChange={(e) => setInput(e.target.value)}
-          />
-
-          <div className="flex flex-col  self-end">
-            <div className="text-sm text-center mb-2 text-neutral-400">
-              <div
-                className={
-                  input.length > max ? "text-red-500" : "text-zinc-500"
-                }
-              >
-                {input.length} / {max}
-              </div>
-            </div>
-
-            <Button
-              title={"模範解答を作成"}
-              onClick={handleAnswer}
-              disabled={
-                status === "submitted" ||
-                answerStatus === "submitted" ||
-                messages.length < 4
-              }
-              className="w-18 h-8 rounded mb-2 hover:cursor-pointer "
-            >
-              <CircleCheckBig
-                className={answerStatus === "submitted" ? "animate-spin" : ""}
-              />
-            </Button>
-
-            <Button
-              title={"送信"}
-              type="submit"
-              disabled={
-                input.length > max ||
-                status === "submitted" ||
-                answerStatus === "submitted"
-              }
-              className="w-18 h-10 bg-[#00bc7d] text-white p-2 rounded hover:bg-emerald-900 hover:cursor-pointer hover:text-white/40"
-            >
-              <SendHorizontalIcon
-                className={status === "submitted" ? "animate-ping" : ""}
-              />
-            </Button>
-          </div>
-        </div>
-      </form>
+      {/** 入力バー */}
+      <ChatInput status={status} onSubmit={handleSubmit} />
     </div>
   );
 };

@@ -11,21 +11,16 @@ import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
 import * as ERR from "@/lib/messages/error";
+import { SCENARIO_PATH } from "@/lib/contents/scenarios";
 
-export const MarkdownLoader: React.FC<{ page: number; file: string }> = ({
-  page,
-  file,
-}) => {
+export const MarkdownLoader: React.FC<{ file: string }> = ({ file }) => {
   const [content, setContent] = useState("");
+
+  const dir = SCENARIO_PATH;
+  const mdInfo: MarkdownInfo = { file, dir };
 
   // MD ファイルを読み込む API を叩いて取得
   useEffect(() => {
-    console.log("ページ番号: " + page);
-
-    //const file = MARKDOWN_NAME[page];
-    const dir = "public/markdowns/scenario";
-    const mdInfo: MarkdownInfo = { file, dir };
-
     (async () => {
       try {
         const res: string = await requestApi("", MARKDOWN_READ_API, {
@@ -48,7 +43,7 @@ export const MarkdownLoader: React.FC<{ page: number; file: string }> = ({
   }, []);
 
   return (
-    <div className="markdown-body w-2xl m-5 text-zinc-500 border-zinc-200">
+    <div className="markdown-body w-2xl p-5 text-zinc-500 border-zinc-200">
       <div className="border border-dashed px-12 py-4 rounded">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
       </div>
