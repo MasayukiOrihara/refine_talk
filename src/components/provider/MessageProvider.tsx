@@ -22,7 +22,6 @@ type State = {
   aiAnswer: string;
   answerStatus: ChatStatus;
   onAnswer: boolean;
-  file: string;
 };
 
 type Action =
@@ -31,7 +30,6 @@ type Action =
   | { type: "SET_AI_ANSWER"; msg: string }
   | { type: "SET_ANSWER_STATUS"; value: ChatStatus }
   | { type: "SET_ON_ANSWER"; value: boolean }
-  | { type: "SET_FILE"; file: string }
   | { type: "RESET" };
 
 type Ctx = {
@@ -47,8 +45,6 @@ type Ctx = {
   setAnswerStatus: (value: ChatStatus) => void;
   onAnswer: boolean;
   setOnAnswer: (value: boolean) => void;
-  file: string;
-  setFile: (file: string) => void;
   reset: () => void;
 };
 
@@ -59,7 +55,6 @@ const initialState: State = {
   aiAnswer: "",
   answerStatus: "ready" as ChatStatus,
   onAnswer: false,
-  file: "",
 };
 
 function reducer(state: State, action: Action): State {
@@ -77,8 +72,6 @@ function reducer(state: State, action: Action): State {
       return { ...state, answerStatus: action.value };
     case "SET_ON_ANSWER":
       return { ...state, onAnswer: action.value };
-    case "SET_FILE":
-      return { ...state, file: action.file };
     case "RESET":
       return initialState;
     default:
@@ -113,10 +106,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
     (value: boolean) => dispatch({ type: "SET_ON_ANSWER", value }),
     []
   );
-  const setFile = useCallback(
-    (file: string) => dispatch({ type: "SET_FILE", file }),
-    []
-  );
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
   const currentUserMessage = useMemo(() => {
@@ -143,8 +132,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       setAnswerStatus,
       onAnswer: state.onAnswer,
       setOnAnswer,
-      file: state.file,
-      setFile,
       reset,
     }),
     [
@@ -160,8 +147,6 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       setAnswerStatus,
       state.onAnswer,
       setOnAnswer,
-      state.file,
-      setFile,
       reset,
     ]
   );

@@ -1,27 +1,28 @@
 "use client";
 
-import { TOAST_ERROR } from "@/lib/constants";
 import { messageText } from "@/lib/llm/message";
-import { AnswerProps } from "@/lib/type";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import { useEffect, useRef } from "react";
 import { useUserMessages } from "../provider/MessageProvider";
 import { useRefineTalkChat } from "@/hooks/useRefineChat";
+import { useSessionId } from "@/hooks/useSessionId";
 
 const ANSWER_API = "/api/answer";
 
-export const Answer: React.FC = () => {
+export const Answer: React.FC<{ file: string }> = ({ file }) => {
   // プロバイダーから取得
   const {
     currentUserMessage,
-    setAiMessage,
+    setAiAnswer,
     setAnswerStatus,
     onAnswer,
     setOnAnswer,
-    file,
   } = useUserMessages();
+  // session Id の取得
+  const sessionId = useSessionId();
+  const sessionIdRef = useRef(sessionId);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   const { messages, status, sendMessage } = useRefineTalkChat(ANSWER_API);
 
@@ -30,23 +31,25 @@ export const Answer: React.FC = () => {
     if (!onAnswer) return;
 
     console.log(currentUserMessage);
-    sendMessage({
-      role: "user",
-      parts: [{ type: "text", text: currentUserMessage! }],
-    });
+    sendMessage(
+      {
+        role: "user",
+        parts: [{ type: "text", text: currentUserMessage! }],
+      },
+      { body: { sessionId: sessionIdRef.current, file: file } }
+    );
 
     setOnAnswer(false);
   }, [onAnswer]);
 
   // AIメッセージ監視用の別のuseEffect
   useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
+    if (!messages.length) return;
+    const lastMessage = messages[messages.length - 1];
 
-      // 最後のメッセージがAIからのものかチェック
-      if (lastMessage.role === "assistant") {
-        setAiMessage(messageText(lastMessage));
-      }
+    // 最後のメッセージがAIからのものかチェック
+    if (lastMessage.role === "assistant") {
+      setAiAnswer(messageText(lastMessage));
     }
   }, [messages]);
 

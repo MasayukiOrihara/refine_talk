@@ -8,15 +8,7 @@ type AssistantResponseProps = {
 };
 
 export default function AssistantResponse({ status }: AssistantResponseProps) {
-  const {
-    currentUserMessage,
-    assistantMessages,
-    currentAssistantMessage,
-    aiAnswer,
-    answerStatus,
-    setOnAnswer,
-    setFile,
-  } = useUserMessages();
+  const { currentAssistantMessage, aiAnswer } = useUserMessages();
 
   return (
     <div>

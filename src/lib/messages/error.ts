@@ -12,6 +12,7 @@ export const UI_ERROR = "UI Error ";
 export const API_LOGS_ERROR = "error logs API POST error";
 export const MD_READ_ERROR = "markdown read API POST error";
 export const REFINE_TALK_ERROR = "refine talk API POST error";
+export const ANSWER_ERROR = "refine talk API POST error";
 
 // supabase
 export const SUPABASE_KEY_ERROR = "Expected SUPABASE_SERVICE_ROLE_KEY";

@@ -1,10 +1,6 @@
 "use client";
 
-import { CircleCheckBig, SendHorizontalIcon } from "lucide-react";
-import { Ellipsis } from "lucide-react";
-
-import { Button } from "../ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { messageText } from "@/lib/llm/message";
 import { useRefineTalkChat } from "@/hooks/useRefineChat";
 import { REFINETALK_API } from "@/lib/api/path";
@@ -19,15 +15,7 @@ export const INPUT_LENGTH_MAX = 400;
 
 export const Chat: React.FC<{ file: string }> = ({ file }) => {
   // プロバイダーから取得
-  const {
-    addUserAnswer,
-    addAssistantMessage,
-    currentUserMessage,
-    aiAnswer,
-    answerStatus,
-    setOnAnswer,
-    setFile,
-  } = useUserMessages();
+  const { addUserAnswer, addAssistantMessage } = useUserMessages();
   // session Id の取得
   const sessionId = useSessionId();
   const sessionIdRef = useRef(sessionId);
@@ -37,21 +25,6 @@ export const Chat: React.FC<{ file: string }> = ({ file }) => {
   // useChat のカスタムフック
   const { messages, status, sendMessage, score } =
     useRefineTalkChat(REFINETALK_API);
-
-  // assistantメッセージ取得
-  const assistantMessage = [...messages]
-    .reverse()
-    .find((msg) => msg.role === "assistant");
-
-  // ユーザーメッセージ取得
-  const userMessages = messages.filter((msg) => msg.role === "user");
-
-  // 模範解答精製用ボタンハンドル
-  // const handleAnswer = () => {
-  //   setOnAnswer(true);
-  //   const previousMessage = messages[messages.length - 2];
-  //   addUserMessage(messageText(previousMessage));
-  // };
 
   useEffect(() => {
     if (!messages || !messages.length) return;
@@ -82,7 +55,7 @@ export const Chat: React.FC<{ file: string }> = ({ file }) => {
     // LLM に送信
     sendMessage(
       { role: "user", parts: [{ type: "text", text: input }] },
-      { body: { sessionId: sessionId, file: file } }
+      { body: { sessionId: sessionIdRef.current, file: file } }
     );
   };
 

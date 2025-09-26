@@ -9,10 +9,10 @@ export default async function Page(props: PageProps<"/play/challeng/[file]">) {
 
   return (
     <FeatureLayout>
+      <Navi file={file} />
       <div className="flex flex-col xl:flex-row h-full mx-auto gap-2 overflow-hidden">
-        {/** todo: navi を追加する */}
         <MarkdownLoader file={file} />
-        <Answer />
+        <Answer file={file} />
         <Chat file={file} />
       </div>
     </FeatureLayout>

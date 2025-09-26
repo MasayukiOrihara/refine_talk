@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useChat } from "@ai-sdk/react";
 import { CircleCheckBig, SendHorizontalIcon } from "lucide-react";
 
 import { useUserMessages } from "@/components/provider/MessageProvider";

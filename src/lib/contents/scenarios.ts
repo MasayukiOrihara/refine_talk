@@ -43,7 +43,6 @@ export const scenarios = [
       "it-ops-q6-resource-scaling.md",
     ],
   },
-
   {
     slug: "mfg-intro.md",
     title: "🏭 製造業 新人",
