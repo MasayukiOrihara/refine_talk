@@ -1,4 +1,4 @@
-import { Ellipsis } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
 
 import { useUserMessages } from "@/components/provider/MessageProvider";
 import { ChatStatus } from "ai";
@@ -72,19 +72,19 @@ export default function AssistantResponse({ status }: AssistantResponseProps) {
 
         {/* ページング */}
         {status === "ready" && Boolean(aiResponse.length) && (
-          <div className="flex">
+          <div className="flex gap-1">
             {/** 左ボタン */}
             <button
               onClick={handlePrev}
               disabled={index === 0}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40"
+              className="px-3 py-1 bg-gray-100 rounded disabled:opacity-40"
             >
-              ＜
+              <ChevronLeft className="h-4 w-4" />
             </button>
 
             {/* 真ん中要素 */}
             <div
-              className={`w-full h-full mx-1 px-4 py-2 bg-gray-200 ${
+              className={`w-full py-1 bg-gray-100 ${
                 cantUseButton ? "opacity-40" : "opacity-100"
               }`}
             >
@@ -110,9 +110,9 @@ export default function AssistantResponse({ status }: AssistantResponseProps) {
             <button
               onClick={handleNext}
               disabled={index === aiResponse.length - 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40"
+              className="px-3 py-1 bg-gray-100 rounded disabled:opacity-40"
             >
-              ＞
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         )}

@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { scenarios } from "@/lib/contents/scenarios";
+import { useUserMessages } from "../provider/MessageProvider";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Navi: React.FC<{ file: string }> = ({ file }) => {
   const [page, setPage] = useState(0);
+  const { reset } = useUserMessages();
 
   // ファイル名からページ数を特定
   const files = findFilePosition(file)?.files ?? [];
@@ -16,8 +19,18 @@ export const Navi: React.FC<{ file: string }> = ({ file }) => {
     setPage(nowPageIndex);
   }, [nowPageIndex]);
 
-  const handleNext = () => setPage((prev) => Math.min(max - 1, prev + 1));
-  const handlePrev = () => setPage((prev) => Math.max(0, prev - 1));
+  const handleNext = () => {
+    reset();
+    setPage((prev) => Math.min(max - 1, prev + 1));
+  };
+  const handlePrev = () => {
+    reset();
+    setPage((prev) => Math.max(0, prev - 1));
+  };
+  const handleTop = () => {
+    reset();
+    setPage(0);
+  };
 
   return (
     <div className="sticky top-0 z-10 px-12 py-4 flex items-center justify-between">
@@ -29,7 +42,7 @@ export const Navi: React.FC<{ file: string }> = ({ file }) => {
             disabled={page === 0}
             className="bg-white/40 hover:bg-white/80 rounded"
           >
-            ＜ 前の問題
+            <ChevronLeft className="h-4 w-4" /> 前の問題
           </Button>
         </Link>
       </div>
@@ -37,7 +50,7 @@ export const Navi: React.FC<{ file: string }> = ({ file }) => {
       {/** トップへ戻るボタン */}
       <div>
         <Link href="/">
-          <Button variant="outline" className="rounded">
+          <Button variant="outline" onClick={handleTop} className="rounded">
             トップ画面に戻る
           </Button>
         </Link>
@@ -51,7 +64,7 @@ export const Navi: React.FC<{ file: string }> = ({ file }) => {
             disabled={page === max - 1}
             className="bg-white/40 hover:bg-white/80 rounded"
           >
-            次の問題 ＞
+            次の問題 <ChevronRight className="h-4 w-4" />
           </Button>
         </Link>
       </div>

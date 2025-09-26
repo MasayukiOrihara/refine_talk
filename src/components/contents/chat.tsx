@@ -61,13 +61,13 @@ export const Chat: React.FC<{ file: string }> = ({ file }) => {
 
   return (
     <div className="flex flex-col w-2xl h-full mx-5 gap-2 overflow-hidden">
-      <div className="h-[25dvh] border overflow-y-auto">
+      <div className="h-[20dvh] border border-dashed overflow-y-auto">
         {/* アシスタントの最新メッセージ（1件）を上に表示 */}
         <AssistantResponse status={status} />
       </div>
 
       {/* ユーザーメッセージは通常の順序で下に表示 */}
-      <div className="h-[40dvh] border overflow-y-auto mb-2">
+      <div className="h-[40dvh] border border-dashed overflow-y-auto mb-2">
         <UserTimeline />
       </div>
 
