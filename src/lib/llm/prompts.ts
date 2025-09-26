@@ -43,7 +43,7 @@ export const SCORE_RESULT_PROMPT = `system:
 - 評価は EVALUATION_CRITERIA（情報の明確さ、文章の構成、業務上の有用性、文体・トーン）に基づいて行う。
 - 指摘ポイントの欄には、最も点数が低かった評価項目の低い理由を1行で記述してください。
 - 各項目について"OUTPUT FORMAT"のみを用いて出力してください。
-- 理由や解説、報告例などは"OUTPUT FORMAT"以外の出力は不要です。
+- "OUTPUT FORMAT" 以外の出力は一切禁止。余計な説明文、理由、例を含めないこと。
 
 ## QUESTION
 <question>

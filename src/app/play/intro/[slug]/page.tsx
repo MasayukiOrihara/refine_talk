@@ -11,8 +11,6 @@ const CHALLENG_PATH = "/play/challeng/";
 export default async function Page(props: PageProps<"/play/intro/[slug]">) {
   const { slug } = await props.params;
 
-  console.log(slug);
-
   const target = scenarios.find((s) => s.slug === slug);
   const file = target?.file?.[0];
   if (!file) notFound(); // 404エラー
@@ -20,7 +18,7 @@ export default async function Page(props: PageProps<"/play/intro/[slug]">) {
   return (
     <FeatureLayout>
       <div className="m-auto">
-        <MarkdownLoader page={1} file={slug} />
+        <MarkdownLoader file={slug} />
 
         {/* 遷移ボタン */}
         <div className="flex justify-center gap-12">

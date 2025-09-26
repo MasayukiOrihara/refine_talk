@@ -12,7 +12,6 @@ export const Navi: React.FC<{ file: string }> = ({ file }) => {
   const max = files.length;
   const nowPageIndex = findFilePosition(file)?.position ?? 0;
 
-  console.log(files);
   useEffect(() => {
     setPage(nowPageIndex);
   }, [nowPageIndex]);
