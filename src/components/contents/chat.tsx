@@ -20,7 +20,7 @@ export const INPUT_LENGTH_MAX = 400;
 export const Chat: React.FC<{ file: string }> = ({ file }) => {
   // プロバイダーから取得
   const {
-    addUserMessage,
+    addUserAnswer,
     addAssistantMessage,
     currentUserMessage,
     aiAnswer,
@@ -35,7 +35,8 @@ export const Chat: React.FC<{ file: string }> = ({ file }) => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
   // useChat のカスタムフック
-  const { messages, status, sendMessage } = useRefineTalkChat(REFINETALK_API);
+  const { messages, status, sendMessage, score } =
+    useRefineTalkChat(REFINETALK_API);
 
   // assistantメッセージ取得
   const assistantMessage = [...messages]
@@ -62,12 +63,22 @@ export const Chat: React.FC<{ file: string }> = ({ file }) => {
     if (!assistantMessage) return;
 
     addAssistantMessage(messageText(assistantMessage));
-  }, [messages]);
+
+    if (!(status === "ready")) return;
+    // user の最新メッセージを取得
+    const userMessage = [...messages]
+      .reverse()
+      .find((msg) => msg.role === "user");
+    if (!userMessage) return;
+    // プロバイダーに入力
+    addUserAnswer({
+      answer: messageText(userMessage),
+      score: String(score) ?? undefined,
+    });
+  }, [messages, status]);
 
   // refine talk(メインLLM)に提出
   const handleSubmit = (input: string) => {
-    // プロバイダーに入力
-    addUserMessage(input);
     // LLM に送信
     sendMessage(
       { role: "user", parts: [{ type: "text", text: input }] },

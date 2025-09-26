@@ -9,7 +9,6 @@ type AssistantResponseProps = {
 
 export default function AssistantResponse({ status }: AssistantResponseProps) {
   const {
-    addUserMessage,
     currentUserMessage,
     assistantMessages,
     currentAssistantMessage,

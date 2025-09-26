@@ -16,7 +16,7 @@ type ChatInputProps = {
 
 export default function ChatInput({ status, onSubmit }: ChatInputProps) {
   const [input, setInput] = useState("");
-  const { userMessages, answerStatus, setOnAnswer } = useUserMessages();
+  const { userAnswers, answerStatus, setOnAnswer } = useUserMessages();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,7 +58,7 @@ export default function ChatInput({ status, onSubmit }: ChatInputProps) {
             disabled={
               status === "submitted" ||
               answerStatus === "submitted" ||
-              userMessages.length < 2 // 回答が2個以上あったら
+              userAnswers.length < 2 // 回答が2個以上あったら
             }
             className="w-18 h-8 rounded mb-2 hover:cursor-pointer "
           >

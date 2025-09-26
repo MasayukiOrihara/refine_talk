@@ -3,16 +3,17 @@
 import { useUserMessages } from "@/components/provider/MessageProvider";
 
 export default function UserTimeline() {
-  const { userMessages } = useUserMessages();
+  const { userAnswers } = useUserMessages();
   return (
     <div>
-      {userMessages.map((msg, index) => (
+      {userAnswers.map((msg, index) => (
         <div
           key={`${msg}-${index}`}
           className="whitespace-pre-wrap px-5 py-3 rounded-lg mb-2 mx-8 flex gap-2 border text-neutral-500 self-start"
         >
           <p className="mt-1" style={{ overflowWrap: "anywhere" }}>
-            {msg}
+            {msg.score}
+            {msg.answer}
           </p>
           {/* {message.map((part, i) => (
             <div

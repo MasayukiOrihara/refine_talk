@@ -9,6 +9,11 @@ import { formatMessage, messageText } from "@/lib/llm/message";
 import { runWithFallback } from "@/lib/llm/run/fallback";
 
 import * as ERR from "@/lib/messages/error";
+import * as PRO from "@/lib/llm/prompts";
+import { requestApi } from "@/lib/api/request/request";
+import { MARKDOWN_READ_API } from "@/lib/api/path";
+import { SCENARIO_PATH } from "@/lib/contents/scenarios";
+import { MarkdownInfo } from "@/lib/schema";
 
 /** 定数 */
 const KEYWORD_SCORE = "総合点: ";
@@ -26,11 +31,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     // フロントから今までのメッセージを取得
     const messages: UIMessage[] = body.messages ?? [];
-    // ページ数とsession idの取得
+    // urlの取得
+    const url = new URL(req.url);
+    if (!url) {
+      throw new Error(`${ERR.VALUE_ERROR}: url`);
+    }
+    // ページとsession idの取得
     const file: string = body?.file;
     const sessionId: string = body?.sessionId;
-    console.log(sessionId);
-    console.log(file);
     if (!file || !sessionId) {
       throw new Error(`${ERR.VALUE_ERROR}: file or session id`);
     }
@@ -42,20 +50,24 @@ export async function POST(req: Request) {
     //現在の履歴 {input}用
     const currentMessage = messages[messages.length - 1];
     const input = messageText(currentMessage);
+    // 問題内容の取得
+    const dir = SCENARIO_PATH;
+    const mdInfo: MarkdownInfo = { file, dir };
+    const question: string = await requestApi(
+      `${url.protocol}//${url.host}/`,
+      MARKDOWN_READ_API,
+      {
+        method: "POST",
+        body: { mdInfo },
+      }
+    );
 
-    // langsmithからプロンプトの取得
-    // todo: ローカル取得に変更（プロンプトの取り扱いに関してはまた後日）
-    const [characterTemplate, scoreTemplate] = await Promise.all([
-      client.pullPromptCommit("refine-talk-character"),
-      client.pullPromptCommit("refine-talk-scere"),
-    ]);
-
+    /* === === 1. 採点 LLM === === */
     console.log("1⃣  点数の取得中...");
     // プロンプトの取得
-    const scorePrompt = PromptTemplate.fromTemplate(
-      scoreTemplate.manifest.kwargs.template
-    );
+    const scorePrompt = PromptTemplate.fromTemplate(PRO.SCORE_RESULT_PROMPT);
     const scorePromptVariables = {
+      question: question,
       input: input,
     };
     // LLM 応答
@@ -70,19 +82,21 @@ export async function POST(req: Request) {
 
     // 文字列の切り出し
     const score = cutKeyword(scoreRes, KEYWORD_SCORE);
-    const checkPoint = cutKeyword(score, KEYWORD_POINT);
+    const checkPoint = cutKeyword(scoreRes, KEYWORD_POINT);
 
+    /* === === 2. 評価 LLM === === */
     console.log("2⃣  評価の取得中...");
     // プロンプトの取得
     const characterPrompt = PromptTemplate.fromTemplate(
-      characterTemplate.manifest.kwargs.template
+      PRO.POINTING_OUT_PROMPT
     );
     const promptVariables = {
-      history: formattedPreviousMessages.join("\n"),
-      question: MARKDOWN_NAME[0],
+      character: PRO.CharacterTypes.calmListener.prompt,
+      chat_history: formattedPreviousMessages.join("\n"),
+      question: question,
       input: input,
       score: score,
-      prompt1_output: checkPoint,
+      pointing_out: checkPoint,
     };
     // LLM 応答
     const lcStream = (await runWithFallback(characterPrompt, promptVariables, {
@@ -91,8 +105,14 @@ export async function POST(req: Request) {
       sessionId: sessionId,
     })) as ReadableStream<string>;
 
+    // ヘッダーで点数を送信
+    const match = score.match(/\d+/); // 連続する数字だけ
+    const num = match ? Number(match[0]) : null;
+    const headers = new Headers({ "x-score": String(num) });
+
     const response = createUIMessageStreamResponse({
       stream: toUIMessageStream(lcStream),
+      headers: headers,
     });
 
     return response;

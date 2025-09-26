@@ -10,9 +10,14 @@ import React, {
   ReactNode,
 } from "react";
 
+type UserAnswer = {
+  answer: string;
+  score?: string;
+};
+
 /* ---------- types ---------- */
 type State = {
-  userMessages: string[];
+  userAnswers: UserAnswer[];
   assistantMessages: string[];
   aiAnswer: string;
   answerStatus: ChatStatus;
@@ -21,7 +26,7 @@ type State = {
 };
 
 type Action =
-  | { type: "ADD_USER_MESSAGE"; msg: string }
+  | { type: "ADD_USER_ANSWER"; answer: UserAnswer }
   | { type: "ADD_ASSISTANT_MESSAGE"; msg: string }
   | { type: "SET_AI_ANSWER"; msg: string }
   | { type: "SET_ANSWER_STATUS"; value: ChatStatus }
@@ -30,8 +35,8 @@ type Action =
   | { type: "RESET" };
 
 type Ctx = {
-  userMessages: string[];
-  addUserMessage: (msg: string) => void;
+  userAnswers: UserAnswer[];
+  addUserAnswer: (answer: UserAnswer) => void;
   currentUserMessage: string | undefined;
   assistantMessages: string[];
   addAssistantMessage: (msg: string) => void;
@@ -49,7 +54,7 @@ type Ctx = {
 
 /* ---------- reducer ---------- */
 const initialState: State = {
-  userMessages: [],
+  userAnswers: [],
   assistantMessages: [],
   aiAnswer: "",
   answerStatus: "ready" as ChatStatus,
@@ -59,8 +64,8 @@ const initialState: State = {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "ADD_USER_MESSAGE":
-      return { ...state, userMessages: [...state.userMessages, action.msg] };
+    case "ADD_USER_ANSWER":
+      return { ...state, userAnswers: [...state.userAnswers, action.answer] };
     case "ADD_ASSISTANT_MESSAGE":
       return {
         ...state,
@@ -88,8 +93,8 @@ const MessageContext = createContext<Ctx | undefined>(undefined);
 export function MessageProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const addUserMessage = useCallback(
-    (msg: string) => dispatch({ type: "ADD_USER_MESSAGE", msg }),
+  const addUserAnswer = useCallback(
+    (answer: UserAnswer) => dispatch({ type: "ADD_USER_ANSWER", answer }),
     []
   );
   const addAssistantMessage = useCallback(
@@ -115,9 +120,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
   const currentUserMessage = useMemo(() => {
-    const arr = state.userMessages;
+    const arr = state.userAnswers.map((val) => val.answer);
     return arr.length ? arr[arr.length - 1] : undefined;
-  }, [state.userMessages]);
+  }, [state.userAnswers]);
 
   const currentAssistantMessage = useMemo(() => {
     const arr = state.assistantMessages;
@@ -126,8 +131,8 @@ export function MessageProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Ctx>(
     () => ({
-      userMessages: state.userMessages,
-      addUserMessage,
+      userAnswers: state.userAnswers,
+      addUserAnswer,
       currentUserMessage,
       assistantMessages: state.assistantMessages,
       addAssistantMessage,
@@ -143,8 +148,8 @@ export function MessageProvider({ children }: { children: ReactNode }) {
       reset,
     }),
     [
-      state.userMessages,
-      addUserMessage,
+      state.userAnswers,
+      addUserAnswer,
       currentUserMessage,
       state.assistantMessages,
       addAssistantMessage,
