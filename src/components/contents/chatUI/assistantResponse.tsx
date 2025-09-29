@@ -55,7 +55,7 @@ export default function AssistantResponse({ status }: AssistantResponseProps) {
     (aiResponse.length === 0 && status === "streaming");
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full min-h-0">
       <div className=" flex flex-col whitespace-pre-wrap px-5 py-3 rounded-lg gap-2 text-neutral-500 self-start">
         {/* 中央に1つ表示 */}
         <div
@@ -128,9 +128,9 @@ export default function AssistantResponse({ status }: AssistantResponseProps) {
 
       {/** 模範解答はここに */}
       {aiAnswer && (
-        <div className="absolute inset-0 p-4 bg-zinc-600 rounded text-sm text-white">
+        <div className="absolute inset-0 p-4 bg-zinc-600 rounded text-sm text-white overflow-y-auto">
           <p className="border mb-2 p-1 text-center">模範解答 </p>
-          {aiAnswer}
+          <div className="whitespace-pre-wrap break-words">{aiAnswer}</div>
         </div>
       )}
     </div>
