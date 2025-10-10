@@ -14,7 +14,27 @@ export const client = new Client({
 export const Haike3_5 = new ChatAnthropic({
   model: "claude-3-5-haiku-latest",
   apiKey: process.env.ANTHROPIC_API_KEY,
-  temperature: 0.3,
+  temperature: 0.2,
+  streaming: true,
+  streamUsage: true,
+  tags: ["refinetalk"],
+});
+
+/** sonnet4.5 */
+export const Sonnet4_5 = new ChatAnthropic({
+  model: "claude-sonnet-4-5-20250929",
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  temperature: 0.2,
+  streaming: true,
+  streamUsage: true,
+  tags: ["refinetalk"],
+});
+
+/** sonnet4 */
+export const Sonnet4 = new ChatAnthropic({
+  model: "claude-sonnet-4-20250514",
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  temperature: 0.2,
   streaming: true,
   streamUsage: true,
   tags: ["refinetalk"],

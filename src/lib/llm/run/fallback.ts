@@ -1,5 +1,5 @@
 import { Runnable } from "@langchain/core/runnables";
-import { Haike3_5 } from "../models";
+import { Haike3_5, Sonnet4, Sonnet4_5 } from "../models";
 
 import { createLatencyCallback } from "./latency";
 import { getFullPrompt } from "./helper";
@@ -9,7 +9,7 @@ import * as TYPE from "./type";
 import * as ERR from "@/lib/messages/error";
 
 // フォールバック可能なLLM一覧
-const fallbackLLMs: Runnable[] = [Haike3_5];
+const fallbackLLMs: Runnable[] = [Sonnet4_5];
 
 /**
  * レート制限に達したときに別のモデルに切り替える対策 + 指数バックオフ付き
